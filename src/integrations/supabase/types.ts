@@ -14,7 +14,358 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_logs: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          metadata: Json | null
+          photographer_id: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          metadata?: Json | null
+          photographer_id: string
+          type: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          metadata?: Json | null
+          photographer_id?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_photographer_id_fkey"
+            columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          booking_date: string | null
+          client_email: string | null
+          client_name: string
+          client_phone: string | null
+          created_at: string
+          id: string
+          message: string | null
+          photographer_id: string
+          service_type: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          booking_date?: string | null
+          client_email?: string | null
+          client_name: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          photographer_id: string
+          service_type?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          booking_date?: string | null
+          client_email?: string | null
+          client_name?: string
+          client_phone?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          photographer_id?: string
+          service_type?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_photographer_id_fkey"
+            columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      comments: {
+        Row: {
+          author: string
+          created_at: string
+          gallery_id: string
+          id: string
+          image_id: string | null
+          message: string
+          parent_id: string | null
+        }
+        Insert: {
+          author?: string
+          created_at?: string
+          gallery_id: string
+          id?: string
+          image_id?: string | null
+          message: string
+          parent_id?: string | null
+        }
+        Update: {
+          author?: string
+          created_at?: string
+          gallery_id?: string
+          id?: string
+          image_id?: string | null
+          message?: string
+          parent_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comments_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "galleries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_images"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favorites: {
+        Row: {
+          client_session: string
+          created_at: string
+          id: string
+          image_id: string
+        }
+        Insert: {
+          client_session: string
+          created_at?: string
+          id?: string
+          image_id: string
+        }
+        Update: {
+          client_session?: string
+          created_at?: string
+          id?: string
+          image_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorites_image_id_fkey"
+            columns: ["image_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_images"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      galleries: {
+        Row: {
+          brand_color: string | null
+          client_name: string
+          created_at: string
+          download_enabled: boolean | null
+          expires_at: string | null
+          hero_banner_url: string | null
+          id: string
+          note: string | null
+          password_hash: string | null
+          photographer_id: string
+          title: string
+          updated_at: string
+          views_count: number | null
+          welcome_message: string | null
+        }
+        Insert: {
+          brand_color?: string | null
+          client_name?: string
+          created_at?: string
+          download_enabled?: boolean | null
+          expires_at?: string | null
+          hero_banner_url?: string | null
+          id?: string
+          note?: string | null
+          password_hash?: string | null
+          photographer_id: string
+          title: string
+          updated_at?: string
+          views_count?: number | null
+          welcome_message?: string | null
+        }
+        Update: {
+          brand_color?: string | null
+          client_name?: string
+          created_at?: string
+          download_enabled?: boolean | null
+          expires_at?: string | null
+          hero_banner_url?: string | null
+          id?: string
+          note?: string | null
+          password_hash?: string | null
+          photographer_id?: string
+          title?: string
+          updated_at?: string
+          views_count?: number | null
+          welcome_message?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "galleries_photographer_id_fkey"
+            columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gallery_images: {
+        Row: {
+          created_at: string
+          gallery_id: string
+          id: string
+          image_url: string
+          note: string | null
+          sort_order: number | null
+          thumbnail_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          gallery_id: string
+          id?: string
+          image_url: string
+          note?: string | null
+          sort_order?: number | null
+          thumbnail_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          gallery_id?: string
+          id?: string
+          image_url?: string
+          note?: string | null
+          sort_order?: number | null
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_images_gallery_id_fkey"
+            columns: ["gallery_id"]
+            isOneToOne: false
+            referencedRelation: "galleries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      portfolios: {
+        Row: {
+          about: string | null
+          created_at: string
+          id: string
+          photographer_id: string
+          published: boolean | null
+          sections: Json | null
+          tagline: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          about?: string | null
+          created_at?: string
+          id?: string
+          photographer_id: string
+          published?: boolean | null
+          sections?: Json | null
+          tagline?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          about?: string | null
+          created_at?: string
+          id?: string
+          photographer_id?: string
+          published?: boolean | null
+          sections?: Json | null
+          tagline?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portfolios_photographer_id_fkey"
+            columns: ["photographer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          bio: string | null
+          brand_color: string | null
+          created_at: string
+          email: string
+          full_name: string
+          id: string
+          logo_url: string | null
+          onboarded: boolean | null
+          phone: string | null
+          studio_name: string | null
+          subdomain: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          brand_color?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id: string
+          logo_url?: string | null
+          onboarded?: boolean | null
+          phone?: string | null
+          studio_name?: string | null
+          subdomain?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          brand_color?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string
+          id?: string
+          logo_url?: string | null
+          onboarded?: boolean | null
+          phone?: string | null
+          studio_name?: string | null
+          subdomain?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
