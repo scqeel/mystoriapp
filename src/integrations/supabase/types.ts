@@ -184,6 +184,7 @@ export type Database = {
         Row: {
           brand_color: string | null
           client_name: string
+          cover_image_id: string | null
           created_at: string
           download_enabled: boolean | null
           expires_at: string | null
@@ -200,6 +201,7 @@ export type Database = {
         Insert: {
           brand_color?: string | null
           client_name?: string
+          cover_image_id?: string | null
           created_at?: string
           download_enabled?: boolean | null
           expires_at?: string | null
@@ -216,6 +218,7 @@ export type Database = {
         Update: {
           brand_color?: string | null
           client_name?: string
+          cover_image_id?: string | null
           created_at?: string
           download_enabled?: boolean | null
           expires_at?: string | null
@@ -230,6 +233,13 @@ export type Database = {
           welcome_message?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "galleries_cover_image_id_fkey"
+            columns: ["cover_image_id"]
+            isOneToOne: false
+            referencedRelation: "gallery_images"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "galleries_photographer_id_fkey"
             columns: ["photographer_id"]
@@ -280,6 +290,7 @@ export type Database = {
       portfolios: {
         Row: {
           about: string | null
+          cover_image_url: string | null
           created_at: string
           id: string
           photographer_id: string
@@ -291,6 +302,7 @@ export type Database = {
         }
         Insert: {
           about?: string | null
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           photographer_id: string
@@ -302,6 +314,7 @@ export type Database = {
         }
         Update: {
           about?: string | null
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           photographer_id?: string
