@@ -26,6 +26,7 @@ import Analytics from "./pages/app/Analytics";
 import SettingsPage from "./pages/app/SettingsPage";
 import PublicGallery from "./pages/PublicGallery";
 import PublicPortfolio from "./pages/PublicPortfolio";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +42,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
           {/* Public */}
           <Route path="/" element={<Index />} />

@@ -121,6 +121,8 @@ export default function PublicGallery() {
   };
 
   const brandColor = gallery?.brand_color || "#F4A261";
+  const coverImage = images.find((img: any) => img.id === gallery?.cover_image_id);
+  const coverUrl = coverImage?.image_url || null;
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (lightboxIdx === null) return;
@@ -183,21 +185,29 @@ export default function PublicGallery() {
   return (
     <div className="min-h-screen bg-white" style={{ fontFamily: "'Poppins', sans-serif" }}>
       {/* Hero */}
-      <header className="relative py-16 md:py-24 px-6 text-center" style={{ background: `linear-gradient(135deg, ${brandColor}22, ${brandColor}08)` }}>
-        {profile?.logo_url && (
-          <img src={profile.logo_url} alt="Logo" className="h-12 mx-auto mb-6 object-contain" />
+      <header className="relative py-16 md:py-24 px-6 text-center" style={{ background: coverUrl ? undefined : `linear-gradient(135deg, ${brandColor}22, ${brandColor}08)` }}>
+        {coverUrl && (
+          <div className="absolute inset-0">
+            <img src={coverUrl} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/50" />
+          </div>
         )}
-        <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-3xl md:text-5xl font-semibold" style={{ color: "#111" }}>
-          {gallery.title}
-        </motion.h1>
-        <p className="mt-2 text-muted-foreground">For {gallery.client_name}</p>
-        {gallery.welcome_message && (
-          <p className="mt-4 max-w-lg mx-auto text-muted-foreground text-sm leading-relaxed">{gallery.welcome_message}</p>
-        )}
-        <div className="flex justify-center gap-4 mt-6">
-          <button onClick={() => setShowFavs(!showFavs)} className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-full border transition-colors hover:bg-white/60" style={{ borderColor: brandColor, color: brandColor }}>
-            <Heart className="h-4 w-4" /> {favorites.size} Favorites
-          </button>
+        <div className="relative z-10">
+          {profile?.logo_url && (
+            <img src={profile.logo_url} alt="Logo" className="h-12 mx-auto mb-6 object-contain" />
+          )}
+          <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-3xl md:text-5xl font-semibold" style={{ color: coverUrl ? "#fff" : "#111" }}>
+            {gallery.title}
+          </motion.h1>
+          <p className={`mt-2 ${coverUrl ? "text-white/80" : "text-muted-foreground"}`}>For {gallery.client_name}</p>
+          {gallery.welcome_message && (
+            <p className={`mt-4 max-w-lg mx-auto text-sm leading-relaxed ${coverUrl ? "text-white/70" : "text-muted-foreground"}`}>{gallery.welcome_message}</p>
+          )}
+          <div className="flex justify-center gap-4 mt-6">
+            <button onClick={() => setShowFavs(!showFavs)} className={`flex items-center gap-1.5 text-sm px-4 py-2 rounded-full border transition-colors ${coverUrl ? "border-white/40 text-white hover:bg-white/20" : "hover:bg-white/60"}`} style={coverUrl ? {} : { borderColor: brandColor, color: brandColor }}>
+              <Heart className="h-4 w-4" /> {favorites.size} Favorites
+            </button>
+          </div>
         </div>
       </header>
 
@@ -274,8 +284,8 @@ export default function PublicGallery() {
 
       {/* Footer */}
       <footer className="text-center py-8 border-t text-xs text-muted-foreground">
-        {profile?.studio_name && <p>📸 {profile.studio_name}</p>}
-        <p className="mt-1">Powered by <span className="font-medium" style={{ color: brandColor }}>MyStori</span></p>
+        <p>Powered by <span className="font-medium" style={{ color: brandColor }}>MyStori</span></p>
+        {profile?.studio_name && <p className="mt-1">Gallery made by <span className="font-medium">{profile.studio_name}</span></p>}
       </footer>
 
       {/* Lightbox */}

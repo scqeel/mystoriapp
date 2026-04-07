@@ -1,0 +1,2 @@
+ALTER TABLE public.galleries ADD COLUMN IF NOT EXISTS cover_image_id uuid REFERENCES public.gallery_images(id) ON DELETE SET NULL;
+ALTER TABLE public.portfolios ADD COLUMN IF NOT EXISTS cover_image_url text DEFAULT '';
