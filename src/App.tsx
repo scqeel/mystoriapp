@@ -24,6 +24,8 @@ import Bookings from "./pages/app/Bookings";
 import Clients from "./pages/app/Clients";
 import Analytics from "./pages/app/Analytics";
 import SettingsPage from "./pages/app/SettingsPage";
+import PublicGallery from "./pages/PublicGallery";
+import PublicPortfolio from "./pages/PublicPortfolio";
 
 const queryClient = new QueryClient();
 
