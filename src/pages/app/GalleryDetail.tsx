@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
-import { ArrowLeft, Eye, Heart, MessageCircle, ExternalLink, Trash2, Copy } from "lucide-react";
+import { ArrowLeft, Eye, Heart, MessageCircle, ExternalLink, Trash2, Copy, ImageIcon, Check } from "lucide-react";
 
 export default function GalleryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -61,6 +61,15 @@ export default function GalleryDetail() {
     if (error) toast.error("Failed to save");
     else toast.success("Gallery updated");
     setSaving(false);
+  };
+
+  const setCoverImage = async (imageId: string) => {
+    const { error } = await supabase.from("galleries").update({ cover_image_id: imageId }).eq("id", id!);
+    if (error) toast.error("Failed to set cover image");
+    else {
+      setGallery({ ...gallery, cover_image_id: imageId });
+      toast.success("Cover image set!");
+    }
   };
 
   const handleDelete = async () => {
@@ -153,13 +162,26 @@ export default function GalleryDetail() {
 
           {/* Images grid */}
           <h2 className="text-lg font-semibold">Photos ({images.length})</h2>
+          <p className="text-xs text-muted-foreground mb-2">Click an image to set it as cover</p>
           {images.length === 0 ? (
             <p className="text-sm text-muted-foreground">No images uploaded yet</p>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
               {images.map((img) => (
-                <div key={img.id} className="aspect-square rounded-lg overflow-hidden bg-secondary">
+                <div
+                  key={img.id}
+                  className={`aspect-square rounded-lg overflow-hidden bg-secondary relative group cursor-pointer ring-2 ${gallery.cover_image_id === img.id ? "ring-primary" : "ring-transparent"}`}
+                  onClick={() => setCoverImage(img.id)}
+                >
                   <img src={img.image_url} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  {gallery.cover_image_id === img.id && (
+                    <div className="absolute top-1 right-1 bg-primary text-primary-foreground rounded-full p-1">
+                      <Check className="h-3 w-3" />
+                    </div>
+                  )}
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                    <ImageIcon className="h-5 w-5 text-white" />
+                  </div>
                 </div>
               ))}
             </div>
