@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowLeft, Save, Trash2, Check } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Check, Image } from "lucide-react";
 
 const TEMPLATES = [
   { id: "classic", name: "Classic", desc: "Centered hero, clean 3-column grid" },
@@ -47,6 +47,7 @@ export default function PortfolioEdit() {
         tagline: portfolio.tagline,
         about: portfolio.about,
         published: portfolio.published,
+        cover_image_url: portfolio.cover_image_url || "",
         sections: { template: selectedTemplate },
       })
       .eq("id", portfolio.id);
@@ -99,6 +100,15 @@ export default function PortfolioEdit() {
           <div className="space-y-2">
             <Label>About</Label>
             <Textarea value={portfolio.about || ""} onChange={(e) => setPortfolio({ ...portfolio, about: e.target.value })} placeholder="Tell your story..." rows={5} />
+          </div>
+          <div className="space-y-2">
+            <Label>Cover Image URL</Label>
+            <div className="flex gap-2">
+              <Input value={portfolio.cover_image_url || ""} onChange={(e) => setPortfolio({ ...portfolio, cover_image_url: e.target.value })} placeholder="https://... (paste an image URL for your hero cover)" />
+              {portfolio.cover_image_url && (
+                <img src={portfolio.cover_image_url} alt="Cover preview" className="h-10 w-16 object-cover rounded" />
+              )}
+            </div>
           </div>
         </CardContent>
       </Card>
