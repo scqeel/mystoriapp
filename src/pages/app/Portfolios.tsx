@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Briefcase, ExternalLink } from "lucide-react";
+import { Plus, Briefcase, ExternalLink, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 export default function Portfolios() {
@@ -37,18 +37,21 @@ export default function Portfolios() {
       .insert({
         photographer_id: session.user.id,
         title: "My Portfolio",
-        sections: [],
+        sections: { template: "classic" },
       })
       .select()
       .single();
 
-    if (error) {
-      toast.error("Failed to create portfolio");
-      return;
-    }
-
+    if (error) { toast.error("Failed to create portfolio"); return; }
     toast.success("Portfolio created!");
     setPortfolios((prev) => [data, ...prev]);
+  };
+
+  const deletePortfolio = async (portfolioId: string) => {
+    if (!confirm("Delete this portfolio?")) return;
+    await supabase.from("portfolios").delete().eq("id", portfolioId);
+    setPortfolios((prev) => prev.filter((p) => p.id !== portfolioId));
+    toast.success("Portfolio deleted");
   };
 
   return (
@@ -87,6 +90,11 @@ export default function Portfolios() {
                   <span className={`text-xs px-2 py-1 rounded-full ${p.published ? "bg-green-100 text-green-700" : "bg-secondary text-muted-foreground"}`}>
                     {p.published ? "Published" : "Draft"}
                   </span>
+                  {(p.sections as any)?.template && (
+                    <span className="text-xs px-2 py-1 rounded-full bg-secondary text-muted-foreground capitalize">
+                      {(p.sections as any).template}
+                    </span>
+                  )}
                 </div>
                 <div className="flex gap-2 mt-4">
                   <Button asChild size="sm" variant="outline">
@@ -99,6 +107,9 @@ export default function Portfolios() {
                       </a>
                     </Button>
                   )}
+                  <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" onClick={() => deletePortfolio(p.id)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>

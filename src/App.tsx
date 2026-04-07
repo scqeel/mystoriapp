@@ -52,6 +52,10 @@ const App = () => (
           <Route path="/for-photographers" element={<ForPhotographers />} />
           <Route path="/blog" element={<Blog />} />
 
+          {/* Public mini-sites */}
+          <Route path="/g/:id" element={<PublicGallery />} />
+          <Route path="/p/:username" element={<PublicPortfolio />} />
+
           {/* Dashboard */}
           <Route path="/app/dashboard" element={<AppRoute><Dashboard /></AppRoute>} />
           <Route path="/app/galleries" element={<AppRoute><Galleries /></AppRoute>} />

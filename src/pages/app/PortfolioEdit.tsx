@@ -8,13 +8,22 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowLeft, Save } from "lucide-react";
+import { ArrowLeft, Save, Trash2, Check } from "lucide-react";
+
+const TEMPLATES = [
+  { id: "classic", name: "Classic", desc: "Centered hero, clean 3-column grid" },
+  { id: "editorial", name: "Editorial", desc: "Left-aligned hero, 2-column magazine layout" },
+  { id: "bold", name: "Bold", desc: "Large hero, dramatic 3-column showcase" },
+  { id: "minimal", name: "Minimal", desc: "Compact hero, tight 4-column grid" },
+  { id: "cinematic", name: "Cinematic", desc: "Full-height hero, immersive 2-column" },
+];
 
 export default function PortfolioEdit() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [portfolio, setPortfolio] = useState<any>(null);
   const [saving, setSaving] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState("classic");
 
   useEffect(() => {
     if (id) loadPortfolio();
@@ -22,7 +31,10 @@ export default function PortfolioEdit() {
 
   const loadPortfolio = async () => {
     const { data } = await supabase.from("portfolios").select("*").eq("id", id).single();
-    setPortfolio(data);
+    if (data) {
+      setPortfolio(data);
+      setSelectedTemplate((data.sections as any)?.template || "classic");
+    }
   };
 
   const handleSave = async () => {
@@ -35,6 +47,7 @@ export default function PortfolioEdit() {
         tagline: portfolio.tagline,
         about: portfolio.about,
         published: portfolio.published,
+        sections: { template: selectedTemplate },
       })
       .eq("id", portfolio.id);
 
@@ -43,15 +56,27 @@ export default function PortfolioEdit() {
     setSaving(false);
   };
 
+  const handleDelete = async () => {
+    if (!confirm("Delete this portfolio permanently?")) return;
+    await supabase.from("portfolios").delete().eq("id", id!);
+    toast.success("Portfolio deleted");
+    navigate("/app/portfolios");
+  };
+
   if (!portfolio) {
     return <div className="flex items-center justify-center py-20"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   }
 
   return (
     <div className="space-y-8 max-w-2xl">
-      <button onClick={() => navigate("/app/portfolios")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
-        <ArrowLeft className="h-4 w-4" /> Back to Portfolios
-      </button>
+      <div className="flex items-center justify-between">
+        <button onClick={() => navigate("/app/portfolios")} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <ArrowLeft className="h-4 w-4" /> Back to Portfolios
+        </button>
+        <Button variant="destructive" size="sm" onClick={handleDelete}>
+          <Trash2 className="h-4 w-4 mr-2" /> Delete
+        </Button>
+      </div>
 
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-semibold">Edit Portfolio</h1>
@@ -78,9 +103,25 @@ export default function PortfolioEdit() {
         </CardContent>
       </Card>
 
-      <p className="text-sm text-muted-foreground bg-secondary p-4 rounded-lg">
-        🚧 Drag-and-drop section builder coming soon. For now, edit your portfolio content above and it will be displayed on your public portfolio page.
-      </p>
+      {/* Template selector */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Choose a Template</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {TEMPLATES.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => setSelectedTemplate(t.id)}
+              className={`text-left p-4 rounded-xl border-2 transition-colors ${selectedTemplate === t.id ? "border-primary bg-primary/5" : "border-border hover:border-primary/40"}`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-medium text-sm">{t.name}</span>
+                {selectedTemplate === t.id && <Check className="h-4 w-4 text-primary" />}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{t.desc}</p>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <Button onClick={handleSave} disabled={saving}>
         <Save className="h-4 w-4 mr-2" /> {saving ? "Saving..." : "Save Portfolio"}
