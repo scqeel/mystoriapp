@@ -24,6 +24,8 @@ import Bookings from "./pages/app/Bookings";
 import Clients from "./pages/app/Clients";
 import Analytics from "./pages/app/Analytics";
 import SettingsPage from "./pages/app/SettingsPage";
+import PublicGallery from "./pages/PublicGallery";
+import PublicPortfolio from "./pages/PublicPortfolio";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +51,10 @@ const App = () => (
           <Route path="/pricing" element={<PricingPage />} />
           <Route path="/for-photographers" element={<ForPhotographers />} />
           <Route path="/blog" element={<Blog />} />
+
+          {/* Public mini-sites */}
+          <Route path="/g/:id" element={<PublicGallery />} />
+          <Route path="/p/:username" element={<PublicPortfolio />} />
 
           {/* Dashboard */}
           <Route path="/app/dashboard" element={<AppRoute><Dashboard /></AppRoute>} />
