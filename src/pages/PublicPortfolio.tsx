@@ -84,6 +84,7 @@ export default function PublicPortfolio() {
 
   const brandColor = profile?.brand_color || "#F4A261";
   const templateKey = (portfolio?.sections as any)?.template || "classic";
+  const portfolioCoverUrl = portfolio?.cover_image_url || null;
   const tmpl = TEMPLATES[templateKey] || TEMPLATES.classic;
 
   if (loading) {
@@ -123,19 +124,27 @@ export default function PublicPortfolio() {
       </nav>
 
       {/* Hero */}
-      <section className={`${tmpl.heroStyle} px-6 flex flex-col ${tmpl.heroAlign}`} style={{ background: `linear-gradient(180deg, ${brandColor}12, transparent)`, paddingTop: "6rem" }}>
-        {profile?.logo_url && <img src={profile.logo_url} alt="Logo" className="h-14 mb-6 object-contain" />}
-        <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-6xl font-semibold max-w-3xl" style={{ color: "#111" }}>
-          {portfolio.title}
-        </motion.h1>
-        {portfolio.tagline && (
-          <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mt-4 text-lg text-muted-foreground max-w-xl">
-            {portfolio.tagline}
-          </motion.p>
+      <section className={`${tmpl.heroStyle} px-6 flex flex-col ${tmpl.heroAlign} relative`} style={{ background: portfolioCoverUrl ? undefined : `linear-gradient(180deg, ${brandColor}12, transparent)`, paddingTop: "6rem" }}>
+        {portfolioCoverUrl && (
+          <div className="absolute inset-0">
+            <img src={portfolioCoverUrl} alt="" className="w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-black/50" />
+          </div>
         )}
-        <motion.a initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} href="#book" className="inline-flex items-center gap-2 mt-8 px-8 py-3 rounded-full text-white font-medium" style={{ backgroundColor: brandColor }}>
-          Book a Session <ArrowRight className="h-4 w-4" />
-        </motion.a>
+        <div className={`relative z-10 flex flex-col ${tmpl.heroAlign}`}>
+          {profile?.logo_url && <img src={profile.logo_url} alt="Logo" className="h-14 mb-6 object-contain" />}
+          <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-4xl md:text-6xl font-semibold max-w-3xl" style={{ color: portfolioCoverUrl ? "#fff" : "#111" }}>
+            {portfolio.title}
+          </motion.h1>
+          {portfolio.tagline && (
+            <motion.p initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className={`mt-4 text-lg max-w-xl ${portfolioCoverUrl ? "text-white/80" : "text-muted-foreground"}`}>
+              {portfolio.tagline}
+            </motion.p>
+          )}
+          <motion.a initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }} href="#book" className="inline-flex items-center gap-2 mt-8 px-8 py-3 rounded-full text-white font-medium" style={{ backgroundColor: brandColor }}>
+            Book a Session <ArrowRight className="h-4 w-4" />
+          </motion.a>
+        </div>
       </section>
 
       {/* About */}
@@ -223,8 +232,8 @@ export default function PublicPortfolio() {
 
       {/* Footer */}
       <footer className="text-center py-8 border-t text-xs text-muted-foreground">
-        <p>© {new Date().getFullYear()} {profile?.studio_name || profile?.full_name}</p>
-        <p className="mt-1">Powered by <span className="font-medium" style={{ color: brandColor }}>MyStori</span></p>
+        <p>Powered by <span className="font-medium" style={{ color: brandColor }}>MyStori</span></p>
+        {profile?.studio_name && <p className="mt-1">Portfolio made by <span className="font-medium">{profile.studio_name}</span></p>}
       </footer>
     </div>
   );

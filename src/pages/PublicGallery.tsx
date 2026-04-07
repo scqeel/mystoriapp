@@ -121,6 +121,8 @@ export default function PublicGallery() {
   };
 
   const brandColor = gallery?.brand_color || "#F4A261";
+  const coverImage = images.find((img: any) => img.id === gallery?.cover_image_id);
+  const coverUrl = coverImage?.image_url || null;
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (lightboxIdx === null) return;
