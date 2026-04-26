@@ -31,7 +31,7 @@ export default function HomePage() {
         <header className="flex items-center justify-between border-b border-border/50 pb-5">
           <Logo size="md" />
           <Button asChild variant="ghost" className="rounded-xl text-foreground">
-            <Link to="/auth">Sign in</Link>
+            <Link to="/auth?tab=signin">Sign in</Link>
           </Button>
         </header>
 
@@ -49,13 +49,13 @@ export default function HomePage() {
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Button asChild className="h-12 rounded-xl px-6 text-sm font-semibold">
-                <Link to="/auth">
+                <Link to="/auth?tab=signup">
                   Sign up
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button asChild variant="outline" className="h-12 rounded-xl border-primary/40 bg-background/30 px-6 text-sm font-semibold text-foreground hover:bg-primary/10 hover:text-foreground">
-                <Link to="/auth">Sign in</Link>
+                <Link to="/auth?tab=signin">Sign in</Link>
               </Button>
             </div>
           </div>
