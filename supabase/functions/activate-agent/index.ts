@@ -1,0 +1,97 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const json = (b: unknown, s = 200) =>
+  new Response(JSON.stringify(b), {
+    status: s,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+
+const slugify = (s: string) =>
+  s.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, "").replace(/\s+/g, "-").slice(0, 40) || "store";
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader) return json({ error: "Unauthorized" }, 401);
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authHeader } },
+  });
+  const { data: ud } = await userClient.auth.getUser();
+  if (!ud.user) return json({ error: "Unauthorized" }, 401);
+
+  const admin = createClient(supabaseUrl, serviceKey);
+  const { data: profile } = await admin.from("profiles").select("full_name, username, phone").eq("id", ud.user.id).maybeSingle();
+
+  // Activation fee
+  const { data: feeRow } = await admin.from("app_settings").select("value").eq("key", "agent_activation_fee").maybeSingle();
+  const fee = Number(feeRow?.value ?? 50);
+
+  // Build slug
+  const baseSlug = slugify(profile?.username || profile?.full_name || `agent-${ud.user.id.slice(0, 6)}`);
+  let slug = baseSlug;
+  let n = 0;
+  while (true) {
+    const { data: exists } = await admin.from("agent_profiles").select("id").eq("store_slug", slug).maybeSingle();
+    if (!exists) break;
+    n++;
+    slug = `${baseSlug}-${n}`;
+    if (n > 50) break;
+  }
+
+  // Upsert agent profile
+  const { data: agent, error: aErr } = await admin
+    .from("agent_profiles")
+    .upsert(
+      {
+        user_id: ud.user.id,
+        store_slug: slug,
+        store_name: `${profile?.full_name || "My"} Store`,
+        activation_paid: true,
+        activation_paid_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" }
+    )
+    .select("*")
+    .single();
+  if (aErr) return json({ error: aErr.message }, 500);
+
+  // Add agent role
+  await admin.from("user_roles").upsert(
+    { user_id: ud.user.id, role: "agent" },
+    { onConflict: "user_id,role" }
+  );
+
+  // Mock payment: log activation fee transaction
+  await admin.from("wallet_transactions").insert({
+    user_id: ud.user.id,
+    type: "activation_fee",
+    amount: fee,
+    status: "completed",
+    description: "Agent activation (mock pay)",
+  });
+
+  // Seed default agent prices = base + 1 cedi markup
+  const { data: bundles } = await admin.from("bundles").select("id, base_price").eq("active", true);
+  if (bundles?.length) {
+    const rows = bundles.map((b: any) => ({
+      agent_id: agent.id,
+      bundle_id: b.id,
+      sell_price: Number(b.base_price) + 1,
+    }));
+    await admin.from("agent_bundle_prices").upsert(rows, { onConflict: "agent_id,bundle_id" });
+  }
+
+  return json({ ok: true, agent });
+});
