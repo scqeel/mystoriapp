@@ -14,368 +14,407 @@ export type Database = {
   }
   public: {
     Tables: {
-      activity_logs: {
+      agent_bundle_prices: {
         Row: {
+          active: boolean
+          agent_id: string
+          bundle_id: string
           created_at: string
           id: string
-          message: string
-          metadata: Json | null
-          photographer_id: string
-          type: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          message: string
-          metadata?: Json | null
-          photographer_id: string
-          type: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          message?: string
-          metadata?: Json | null
-          photographer_id?: string
-          type?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "activity_logs_photographer_id_fkey"
-            columns: ["photographer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      bookings: {
-        Row: {
-          booking_date: string | null
-          client_email: string | null
-          client_name: string
-          client_phone: string | null
-          created_at: string
-          id: string
-          message: string | null
-          photographer_id: string
-          service_type: string | null
-          status: string
+          sell_price: number
           updated_at: string
         }
         Insert: {
-          booking_date?: string | null
-          client_email?: string | null
-          client_name: string
-          client_phone?: string | null
+          active?: boolean
+          agent_id: string
+          bundle_id: string
           created_at?: string
           id?: string
-          message?: string | null
-          photographer_id: string
-          service_type?: string | null
-          status?: string
+          sell_price: number
           updated_at?: string
         }
         Update: {
-          booking_date?: string | null
-          client_email?: string | null
-          client_name?: string
-          client_phone?: string | null
+          active?: boolean
+          agent_id?: string
+          bundle_id?: string
           created_at?: string
           id?: string
-          message?: string | null
-          photographer_id?: string
-          service_type?: string | null
-          status?: string
+          sell_price?: number
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "bookings_photographer_id_fkey"
-            columns: ["photographer_id"]
+            foreignKeyName: "agent_bundle_prices_agent_id_fkey"
+            columns: ["agent_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "agent_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_bundle_prices_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
             referencedColumns: ["id"]
           },
         ]
       }
-      comments: {
+      agent_profiles: {
         Row: {
-          author: string
-          created_at: string
-          gallery_id: string
-          id: string
-          image_id: string | null
-          message: string
-          parent_id: string | null
-        }
-        Insert: {
-          author?: string
-          created_at?: string
-          gallery_id: string
-          id?: string
-          image_id?: string | null
-          message: string
-          parent_id?: string | null
-        }
-        Update: {
-          author?: string
-          created_at?: string
-          gallery_id?: string
-          id?: string
-          image_id?: string | null
-          message?: string
-          parent_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "comments_gallery_id_fkey"
-            columns: ["gallery_id"]
-            isOneToOne: false
-            referencedRelation: "galleries"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_image_id_fkey"
-            columns: ["image_id"]
-            isOneToOne: false
-            referencedRelation: "gallery_images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "comments_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "comments"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      favorites: {
-        Row: {
-          client_session: string
+          activation_paid: boolean
+          activation_paid_at: string | null
           created_at: string
           id: string
-          image_id: string
-        }
-        Insert: {
-          client_session: string
-          created_at?: string
-          id?: string
-          image_id: string
-        }
-        Update: {
-          client_session?: string
-          created_at?: string
-          id?: string
-          image_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "favorites_image_id_fkey"
-            columns: ["image_id"]
-            isOneToOne: false
-            referencedRelation: "gallery_images"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      galleries: {
-        Row: {
-          brand_color: string | null
-          client_name: string
-          cover_image_id: string | null
-          created_at: string
-          download_enabled: boolean | null
-          expires_at: string | null
-          hero_banner_url: string | null
-          id: string
-          note: string | null
-          password_hash: string | null
-          photographer_id: string
-          title: string
+          store_brand_color: string | null
+          store_logo_url: string | null
+          store_name: string
+          store_slug: string
+          store_tagline: string | null
           updated_at: string
-          views_count: number | null
-          welcome_message: string | null
+          user_id: string
         }
         Insert: {
-          brand_color?: string | null
-          client_name?: string
-          cover_image_id?: string | null
+          activation_paid?: boolean
+          activation_paid_at?: string | null
           created_at?: string
-          download_enabled?: boolean | null
-          expires_at?: string | null
-          hero_banner_url?: string | null
           id?: string
-          note?: string | null
-          password_hash?: string | null
-          photographer_id: string
-          title: string
+          store_brand_color?: string | null
+          store_logo_url?: string | null
+          store_name?: string
+          store_slug: string
+          store_tagline?: string | null
           updated_at?: string
-          views_count?: number | null
-          welcome_message?: string | null
+          user_id: string
         }
         Update: {
-          brand_color?: string | null
-          client_name?: string
-          cover_image_id?: string | null
+          activation_paid?: boolean
+          activation_paid_at?: string | null
           created_at?: string
-          download_enabled?: boolean | null
-          expires_at?: string | null
-          hero_banner_url?: string | null
           id?: string
-          note?: string | null
-          password_hash?: string | null
-          photographer_id?: string
-          title?: string
+          store_brand_color?: string | null
+          store_logo_url?: string | null
+          store_name?: string
+          store_slug?: string
+          store_tagline?: string | null
           updated_at?: string
-          views_count?: number | null
-          welcome_message?: string | null
+          user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "galleries_cover_image_id_fkey"
-            columns: ["cover_image_id"]
-            isOneToOne: false
-            referencedRelation: "gallery_images"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "galleries_photographer_id_fkey"
-            columns: ["photographer_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      gallery_images: {
+      app_settings: {
         Row: {
-          created_at: string
-          gallery_id: string
-          id: string
-          image_url: string
-          note: string | null
-          sort_order: number | null
-          thumbnail_url: string | null
+          key: string
+          updated_at: string
+          value: Json
         }
         Insert: {
-          created_at?: string
-          gallery_id: string
-          id?: string
-          image_url: string
-          note?: string | null
-          sort_order?: number | null
-          thumbnail_url?: string | null
+          key: string
+          updated_at?: string
+          value: Json
         }
         Update: {
-          created_at?: string
-          gallery_id?: string
-          id?: string
-          image_url?: string
-          note?: string | null
-          sort_order?: number | null
-          thumbnail_url?: string | null
+          key?: string
+          updated_at?: string
+          value?: Json
         }
-        Relationships: [
-          {
-            foreignKeyName: "gallery_images_gallery_id_fkey"
-            columns: ["gallery_id"]
-            isOneToOne: false
-            referencedRelation: "galleries"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      portfolios: {
+      bundles: {
         Row: {
-          about: string | null
-          cover_image_url: string | null
+          active: boolean
+          base_price: number
           created_at: string
           id: string
-          photographer_id: string
-          published: boolean | null
-          sections: Json | null
-          tagline: string | null
-          title: string
+          network_id: string
+          size_label: string
+          size_mb: number
+          sort_order: number
           updated_at: string
         }
         Insert: {
-          about?: string | null
-          cover_image_url?: string | null
+          active?: boolean
+          base_price: number
           created_at?: string
           id?: string
-          photographer_id: string
-          published?: boolean | null
-          sections?: Json | null
-          tagline?: string | null
-          title?: string
+          network_id: string
+          size_label: string
+          size_mb: number
+          sort_order?: number
           updated_at?: string
         }
         Update: {
-          about?: string | null
-          cover_image_url?: string | null
+          active?: boolean
+          base_price?: number
           created_at?: string
           id?: string
-          photographer_id?: string
-          published?: boolean | null
-          sections?: Json | null
-          tagline?: string | null
-          title?: string
+          network_id?: string
+          size_label?: string
+          size_mb?: number
+          sort_order?: number
           updated_at?: string
         }
         Relationships: [
           {
-            foreignKeyName: "portfolios_photographer_id_fkey"
-            columns: ["photographer_id"]
+            foreignKeyName: "bundles_network_id_fkey"
+            columns: ["network_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "networks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      networks: {
+        Row: {
+          active: boolean
+          code: string
+          color: string
+          created_at: string
+          id: string
+          logo_emoji: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          color?: string
+          created_at?: string
+          id?: string
+          logo_emoji?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          color?: string
+          created_at?: string
+          id?: string
+          logo_emoji?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          agent_id: string | null
+          agent_profit: number
+          base_price: number
+          bundle_id: string
+          created_at: string
+          customer_phone: string
+          customer_user_id: string | null
+          id: string
+          network_id: string
+          notes: string | null
+          payment_reference: string | null
+          payment_status: Database["public"]["Enums"]["payment_status"]
+          recipient_phone: string
+          reference: string
+          sell_price: number
+          source: Database["public"]["Enums"]["order_source"]
+          status: Database["public"]["Enums"]["order_status"]
+          updated_at: string
+        }
+        Insert: {
+          agent_id?: string | null
+          agent_profit?: number
+          base_price: number
+          bundle_id: string
+          created_at?: string
+          customer_phone: string
+          customer_user_id?: string | null
+          id?: string
+          network_id: string
+          notes?: string | null
+          payment_reference?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          recipient_phone: string
+          reference?: string
+          sell_price: number
+          source?: Database["public"]["Enums"]["order_source"]
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string | null
+          agent_profit?: number
+          base_price?: number
+          bundle_id?: string
+          created_at?: string
+          customer_phone?: string
+          customer_user_id?: string | null
+          id?: string
+          network_id?: string
+          notes?: string | null
+          payment_reference?: string | null
+          payment_status?: Database["public"]["Enums"]["payment_status"]
+          recipient_phone?: string
+          reference?: string
+          sell_price?: number
+          source?: Database["public"]["Enums"]["order_source"]
+          status?: Database["public"]["Enums"]["order_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agent_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_bundle_id_fkey"
+            columns: ["bundle_id"]
+            isOneToOne: false
+            referencedRelation: "bundles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "orders_network_id_fkey"
+            columns: ["network_id"]
+            isOneToOne: false
+            referencedRelation: "networks"
             referencedColumns: ["id"]
           },
         ]
       }
       profiles: {
         Row: {
-          bio: string | null
-          brand_color: string | null
+          avatar_url: string | null
           created_at: string
-          email: string
+          email: string | null
           full_name: string
           id: string
-          logo_url: string | null
-          onboarded: boolean | null
-          phone: string | null
-          studio_name: string | null
-          subdomain: string | null
+          phone: string
           updated_at: string
+          username: string | null
         }
         Insert: {
-          bio?: string | null
-          brand_color?: string | null
+          avatar_url?: string | null
           created_at?: string
-          email?: string
+          email?: string | null
           full_name?: string
           id: string
-          logo_url?: string | null
-          onboarded?: boolean | null
-          phone?: string | null
-          studio_name?: string | null
-          subdomain?: string | null
+          phone: string
           updated_at?: string
+          username?: string | null
         }
         Update: {
-          bio?: string | null
-          brand_color?: string | null
+          avatar_url?: string | null
           created_at?: string
-          email?: string
+          email?: string | null
           full_name?: string
           id?: string
-          logo_url?: string | null
-          onboarded?: boolean | null
-          phone?: string | null
-          studio_name?: string | null
-          subdomain?: string | null
+          phone?: string
           updated_at?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wallet_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          related_order_id: string | null
+          status: Database["public"]["Enums"]["wallet_tx_status"]
+          type: Database["public"]["Enums"]["wallet_tx_type"]
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          related_order_id?: string | null
+          status?: Database["public"]["Enums"]["wallet_tx_status"]
+          type: Database["public"]["Enums"]["wallet_tx_type"]
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          related_order_id?: string | null
+          status?: Database["public"]["Enums"]["wallet_tx_status"]
+          type?: Database["public"]["Enums"]["wallet_tx_type"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wallet_transactions_related_order_id_fkey"
+            columns: ["related_order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      withdrawals: {
+        Row: {
+          admin_note: string | null
+          amount: number
+          created_at: string
+          id: string
+          momo_name: string
+          momo_network: string
+          momo_number: string
+          processed_at: string | null
+          status: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_note?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          momo_name: string
+          momo_network: string
+          momo_number: string
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_note?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          momo_name?: string
+          momo_network?: string
+          momo_number?: string
+          processed_at?: string | null
+          status?: Database["public"]["Enums"]["withdrawal_status"]
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -384,10 +423,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_wallet_balance: { Args: { _user_id: string }; Returns: number }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "agent" | "user"
+      order_source: "direct" | "agent_store"
+      order_status:
+        | "pending"
+        | "processing"
+        | "delivered"
+        | "failed"
+        | "refunded"
+      payment_status: "pending" | "paid" | "failed" | "refunded"
+      wallet_tx_status: "pending" | "completed" | "failed" | "reversed"
+      wallet_tx_type:
+        | "earning"
+        | "withdrawal"
+        | "refund"
+        | "activation_fee"
+        | "adjustment"
+      withdrawal_status: "pending" | "approved" | "rejected" | "paid"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -514,6 +576,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "agent", "user"],
+      order_source: ["direct", "agent_store"],
+      order_status: [
+        "pending",
+        "processing",
+        "delivered",
+        "failed",
+        "refunded",
+      ],
+      payment_status: ["pending", "paid", "failed", "refunded"],
+      wallet_tx_status: ["pending", "completed", "failed", "reversed"],
+      wallet_tx_type: [
+        "earning",
+        "withdrawal",
+        "refund",
+        "activation_fee",
+        "adjustment",
+      ],
+      withdrawal_status: ["pending", "approved", "rejected", "paid"],
+    },
   },
 } as const
