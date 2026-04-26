@@ -35,7 +35,6 @@ export default function AuthPage() {
   // Sign-up fields
   const [suFullName, setSuFullName] = useState("");
   const [suUsername, setSuUsername] = useState("");
-  const [suPhone, setSuPhone] = useState("");
   const [suEmail, setSuEmail] = useState("");
   const [suPassword, setSuPassword] = useState("");
 
@@ -58,13 +57,8 @@ export default function AuthPage() {
   };
 
   const doSignUp = async () => {
-    if (!suFullName || !suUsername || !suPhone || !suEmail || !suPassword) {
+    if (!suFullName || !suUsername || !suEmail || !suPassword) {
       toast({ title: "Please fill in all fields", variant: "destructive" });
-      return;
-    }
-    const cleanedPhone = suPhone.replace(/\D/g, "");
-    if (cleanedPhone.length < 9) {
-      toast({ title: "Enter a valid phone number", variant: "destructive" });
       return;
     }
     setBusy(true);
@@ -76,7 +70,6 @@ export default function AuthPage() {
         data: {
           full_name: suFullName.trim(),
           username: suUsername.toLowerCase().trim(),
-          phone: cleanedPhone,
         },
       },
     });
@@ -190,16 +183,6 @@ export default function AuthPage() {
                   className={inputCls}
                 />
               </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-xs text-muted-foreground ml-1">Phone number</label>
-              <Input
-                inputMode="tel"
-                placeholder="024 123 4567"
-                value={suPhone}
-                onChange={(e) => setSuPhone(e.target.value)}
-                className={inputCls}
-              />
             </div>
             <div className="space-y-1">
               <label className="text-xs text-muted-foreground ml-1">Email address</label>
