@@ -45,7 +45,7 @@ const Index = () => {
 
   return (
     <AppShell>
-      <div className="px-5 pt-6">
+      <div className="mx-auto w-full max-w-[1360px] px-5 pt-6 md:px-8 xl:px-12">
         {/* Top bar */}
         <div className="flex items-center justify-between">
           <div>
@@ -62,26 +62,29 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Hero buy card */}
-        <div className="mt-6 rounded-3xl gradient-primary p-6 text-primary-foreground shadow-float relative overflow-hidden">
-          <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-          <div className="relative">
-            <p className="text-sm opacity-80">Ready to send data?</p>
-            <h2 className="text-3xl font-bold mt-1 leading-tight">Buy in seconds.</h2>
-            <Button
-              onClick={() => setSheet("buy")}
-              className="mt-4 h-12 rounded-2xl bg-white text-primary hover:bg-white/95 shadow-soft px-6"
-            >
-              <Signal className="h-4 w-4 mr-1" /> Buy Data
-            </Button>
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-start">
+          <div className="lg:col-span-8">
+            {/* Hero buy card */}
+            <div className="rounded-3xl gradient-primary p-6 text-primary-foreground shadow-float relative overflow-hidden md:p-8">
+              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+              <div className="relative">
+                <p className="text-sm opacity-80">Ready to send data?</p>
+                <h2 className="mt-1 text-3xl font-bold leading-tight md:text-4xl">Buy in seconds.</h2>
+                <Button
+                  onClick={() => setSheet("buy")}
+                  className="mt-4 h-12 rounded-2xl bg-white text-primary hover:bg-white/95 shadow-soft px-6"
+                >
+                  <Signal className="h-4 w-4 mr-1" /> Buy Data
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
 
-        {/* Quick action bar */}
-        <div className="mt-5 grid grid-cols-3 gap-3">
-          <QuickAction icon={<Signal />} label="Buy Data" onClick={() => setSheet("buy")} />
-          <QuickAction icon={<Package />} label="Track" onClick={() => setSheet("track")} />
-          <QuickAction icon={<Briefcase />} label={isAgent ? "My Store" : "Become Agent"} onClick={() => isAgent ? nav("/agent") : setSheet("agent")} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:col-span-4 lg:grid-cols-1 xl:grid-cols-3">
+            <QuickAction icon={<Signal />} label="Buy Data" onClick={() => setSheet("buy")} />
+            <QuickAction icon={<Package />} label="Track" onClick={() => setSheet("track")} />
+            <QuickAction icon={<Briefcase />} label={isAgent ? "My Store" : "Become Agent"} onClick={() => isAgent ? nav("/agent") : setSheet("agent")} />
+          </div>
         </div>
 
         {/* Become Agent card (if not yet) */}
@@ -102,45 +105,54 @@ const Index = () => {
         )}
 
         {/* Recent orders */}
-        <div className="mt-7">
-          <p className="text-sm text-muted-foreground mb-2 ml-1">Recent activity</p>
-          {recent && recent.length > 0 ? (
-            <div className="space-y-2">
-              {recent.map((o: any) => (
-                <div key={o.id} className="rounded-2xl bg-card border border-border/60 p-4 flex items-center gap-3 shadow-soft">
-                  <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center text-lg">
-                    {o.network?.logo_emoji || "📶"}
+        <div className="mt-7 grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <div className="lg:col-span-8">
+            <p className="text-sm text-muted-foreground mb-2 ml-1">Recent activity</p>
+            {recent && recent.length > 0 ? (
+              <div className="space-y-2">
+                {recent.map((o: any) => (
+                  <div key={o.id} className="rounded-2xl bg-card border border-border/60 p-4 flex items-center gap-3 shadow-soft">
+                    <div className="h-10 w-10 rounded-xl bg-secondary flex items-center justify-center text-lg">
+                      {o.network?.logo_emoji || "📶"}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{o.bundle?.size_label} · {o.network?.name}</p>
+                      <p className="text-xs text-muted-foreground">to {o.recipient_phone} · {timeAgo(o.created_at)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-sm">{formatGHS(o.sell_price)}</p>
+                      <StatusPill status={o.status} />
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium truncate">{o.bundle?.size_label} · {o.network?.name}</p>
-                    <p className="text-xs text-muted-foreground">to {o.recipient_phone} · {timeAgo(o.created_at)}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-sm">{formatGHS(o.sell_price)}</p>
-                    <StatusPill status={o.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-dashed border-border/60 p-6 text-center text-sm text-muted-foreground">
-              No orders yet. Tap "Buy Data" above ⚡
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border/60 p-6 text-center text-sm text-muted-foreground">
+                No orders yet. Tap "Buy Data" above ⚡
+              </div>
+            )}
+          </div>
 
-        {isAdmin && (
-          <Link
-            to="/admin"
-            className="mt-5 flex items-center justify-between rounded-2xl border border-border/60 bg-card p-4 hover:bg-accent transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Shield className="h-5 w-5 text-primary" />
-              <span className="font-medium">Admin Console</span>
+          <div className="lg:col-span-4">
+            <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-soft">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Account</p>
+              <p className="mt-2 text-xl font-semibold text-foreground">{profile?.full_name || profile?.username || "My profile"}</p>
+              <p className="mt-1 text-sm text-muted-foreground">Manage profile, store, and session actions from one place.</p>
+              <div className="mt-4 space-y-2">
+                {isAgent && (
+                  <Button asChild variant="outline" className="w-full h-11 rounded-xl">
+                    <Link to="/agent"><Store className="mr-2 h-4 w-4" /> Open Agent Store</Link>
+                  </Button>
+                )}
+                {isAdmin && (
+                  <Button asChild variant="outline" className="w-full h-11 rounded-xl">
+                    <Link to="/admin"><Shield className="mr-2 h-4 w-4" /> Admin Console</Link>
+                  </Button>
+                )}
+              </div>
             </div>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </Link>
-        )}
+          </div>
+        </div>
       </div>
 
       <BottomSheet open={sheet === "buy"} onOpenChange={(v) => setSheet(v ? "buy" : null)} title="Buy Data" size="lg">
