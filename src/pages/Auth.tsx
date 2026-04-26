@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ type Step = "phone" | "login" | "signup";
 
 export default function AuthPage() {
   const nav = useNavigate();
+  const loc = useLocation();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { session, loading } = useAuth();
   const { data: settings } = useSettings();
@@ -25,10 +27,12 @@ export default function AuthPage() {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
+  const from = (loc.state as { from?: string } | null)?.from;
+  const intent = searchParams.get("intent");
 
   useEffect(() => {
-    if (!loading && session) nav("/", { replace: true });
-  }, [session, loading, nav]);
+    if (!loading && session) nav(from || "/dashboard", { replace: true });
+  }, [session, loading, nav, from]);
 
   const checkPhone = async () => {
     const cleaned = phone.replace(/\D/g, "");
@@ -87,6 +91,11 @@ export default function AuthPage() {
           <p className="mt-4 text-muted-foreground text-lg">
             {settings?.platform_tagline ?? "Buy data in seconds ⚡"}
           </p>
+          {intent === "agent" && (
+            <p className="mt-3 inline-flex items-center rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+              Sign in or create an account to activate your agent store.
+            </p>
+          )}
         </div>
 
         <div className="mt-12 space-y-4 animate-fade-up">
@@ -158,6 +167,11 @@ export default function AuthPage() {
 
         <p className="mt-auto pt-12 text-center text-xs text-muted-foreground">
           By continuing you agree to our terms · Lightning-fast data in Ghana
+        </p>
+        <p className="mt-4 text-center text-xs text-muted-foreground">
+          <Link to="/" className="text-primary hover:text-primary/80">
+            Back to homepage
+          </Link>
         </p>
       </div>
     </div>

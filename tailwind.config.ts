@@ -112,8 +112,8 @@ export default {
         "slide-down": "slide-down 0.3s cubic-bezier(0.32, 0.72, 0, 1)",
       },
       fontFamily: {
-        sans: ["Inter", "system-ui", "-apple-system", "sans-serif"],
-        display: ["Inter", "system-ui", "sans-serif"],
+        sans: ["Manrope", "Segoe UI", "sans-serif"],
+        display: ["Sora", "Manrope", "sans-serif"],
       },
     },
   },
