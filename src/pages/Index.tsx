@@ -1,26 +1,16 @@
-import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useSettings } from "@/hooks/useSettings";
 import { AppShell } from "@/components/AppShell";
 import { Logo } from "@/components/Logo";
-import { BottomSheet } from "@/components/BottomSheet";
-import { BuyDataFlow } from "@/components/buy/BuyDataFlow";
-import { TrackOrder } from "@/components/buy/TrackOrder";
-import { BecomeAgent } from "@/components/buy/BecomeAgent";
 import { Button } from "@/components/ui/button";
-import { Briefcase, LogOut, Package, Shield, Signal, Store, User as UserIcon, Wallet, ChevronRight } from "lucide-react";
+import { ArrowRight, Briefcase, Package, Shield, Signal, Store, User as UserIcon, Wallet } from "lucide-react";
 import { formatGHS, timeAgo } from "@/lib/format";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-type Sheet = null | "buy" | "track" | "agent" | "profile";
-
 const Index = () => {
-  const { profile, isAdmin, isAgent, signOut, session } = useAuth();
-  const { data: settings } = useSettings();
+  const { profile, isAdmin, isAgent, session } = useAuth();
   const nav = useNavigate();
-  const [sheet, setSheet] = useState<Sheet>(null);
 
   const { data: recent } = useQuery({
     queryKey: ["my-recent-orders", session?.user?.id],
@@ -53,44 +43,49 @@ const Index = () => {
             <Logo size="sm" />
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setSheet("profile")}
+            <Link
+              to="/dashboard/profile"
               className="h-11 w-11 rounded-2xl bg-card border border-border/60 shadow-soft flex items-center justify-center hover:scale-105 transition-transform"
             >
               <UserIcon className="h-5 w-5" />
-            </button>
+            </Link>
           </div>
         </div>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-12 lg:items-start">
-          <div className="lg:col-span-8">
-            {/* Hero buy card */}
-            <div className="rounded-3xl gradient-primary p-6 text-primary-foreground shadow-float relative overflow-hidden md:p-8">
-              <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-              <div className="relative">
-                <p className="text-sm opacity-80">Ready to send data?</p>
-                <h2 className="mt-1 text-3xl font-bold leading-tight md:text-4xl">Buy in seconds.</h2>
-                <Button
-                  onClick={() => setSheet("buy")}
-                  className="mt-4 h-12 rounded-2xl bg-white text-primary hover:bg-white/95 shadow-soft px-6"
-                >
+        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <div className="rounded-3xl gradient-primary p-6 text-primary-foreground shadow-float relative overflow-hidden md:p-8 lg:col-span-8">
+            <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
+            <div className="relative">
+              <p className="text-sm opacity-80">Ready to send data?</p>
+              <h2 className="mt-1 text-3xl font-bold leading-tight md:text-4xl">Buy in seconds.</h2>
+              <p className="mt-3 max-w-xl text-sm text-primary-foreground/90">
+                Clean checkout, instant confirmation, and reliable delivery from one professional workspace.
+              </p>
+              <Button asChild className="mt-5 h-12 rounded-2xl bg-white text-primary hover:bg-white/95 shadow-soft px-6">
+                <Link to="/dashboard/buy">
                   <Signal className="h-4 w-4 mr-1" /> Buy Data
-                </Button>
-              </div>
+                </Link>
+              </Button>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:col-span-4 lg:grid-cols-1 xl:grid-cols-3">
-            <QuickAction icon={<Signal />} label="Buy Data" onClick={() => setSheet("buy")} />
-            <QuickAction icon={<Package />} label="Track" onClick={() => setSheet("track")} />
-            <QuickAction icon={<Briefcase />} label={isAgent ? "My Store" : "Become Agent"} onClick={() => isAgent ? nav("/agent") : setSheet("agent")} />
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:col-span-4 lg:grid-cols-1">
+            <QuickAction icon={<Signal />} label="Buy Data" to="/dashboard/buy" />
+            <QuickAction icon={<Package />} label="Track Orders" to="/dashboard/track" />
+            <QuickAction icon={<Briefcase />} label={isAgent ? "My Store" : "Become Agent"} to={isAgent ? "/agent" : "/dashboard/agent"} />
           </div>
+        </div>
+
+        <div className="mt-5 grid grid-cols-1 gap-3 md:grid-cols-3">
+          <StatCard title="Recent Orders" value={String(recent?.length ?? 0)} helper="Last 5 transactions" />
+          <StatCard title="Account Type" value={isAgent ? "Agent" : "Customer"} helper={isAgent ? "You can manage your store" : "Upgrade anytime"} />
+          <StatCard title="Security" value="Protected" helper="Signed in session active" />
         </div>
 
         {/* Become Agent card (if not yet) */}
         {!isAgent && (
-          <button
-            onClick={() => setSheet("agent")}
+          <Link
+            to="/dashboard/agent"
             className="mt-5 w-full rounded-3xl gradient-soft p-5 border border-border/60 flex items-center gap-4 text-left hover:shadow-soft transition-all"
           >
             <div className="h-14 w-14 rounded-2xl gradient-primary flex items-center justify-center text-white shrink-0">
@@ -100,8 +95,8 @@ const Index = () => {
               <p className="font-semibold">Earn with OneGig 💸</p>
               <p className="text-sm text-muted-foreground">Open your store. Set prices. Profit on every sale.</p>
             </div>
-            <ChevronRight className="h-5 w-5 text-muted-foreground" />
-          </button>
+            <ArrowRight className="h-5 w-5 text-muted-foreground" />
+          </Link>
         )}
 
         {/* Recent orders */}
@@ -139,6 +134,9 @@ const Index = () => {
               <p className="mt-2 text-xl font-semibold text-foreground">{profile?.full_name || profile?.username || "My profile"}</p>
               <p className="mt-1 text-sm text-muted-foreground">Manage profile, store, and session actions from one place.</p>
               <div className="mt-4 space-y-2">
+                <Button asChild variant="outline" className="w-full h-11 rounded-xl">
+                  <Link to="/dashboard/profile"><User asIcon className="mr-2 h-4 w-4" /> Profile & Settings</Link>
+                </Button>
                 {isAgent && (
                   <Button asChild variant="outline" className="w-full h-11 rounded-xl">
                     <Link to="/agent"><Store className="mr-2 h-4 w-4" /> Open Agent Store</Link>
@@ -154,64 +152,36 @@ const Index = () => {
           </div>
         </div>
       </div>
-
-      <BottomSheet open={sheet === "buy"} onOpenChange={(v) => setSheet(v ? "buy" : null)} title="Buy Data" size="lg">
-        <BuyDataFlow onSuccess={() => setSheet(null)} />
-      </BottomSheet>
-      <BottomSheet open={sheet === "track"} onOpenChange={(v) => setSheet(v ? "track" : null)} title="Track Order" size="lg">
-        <TrackOrder />
-      </BottomSheet>
-      <BottomSheet open={sheet === "agent"} onOpenChange={(v) => setSheet(v ? "agent" : null)} title="Earn with OneGig" size="lg">
-        <BecomeAgent onClose={() => setSheet(null)} />
-      </BottomSheet>
-      <BottomSheet open={sheet === "profile"} onOpenChange={(v) => setSheet(v ? "profile" : null)} title="Profile" size="md">
-        <div className="space-y-4">
-          <div className="rounded-2xl bg-card p-5 border border-border/60">
-            <p className="text-xs text-muted-foreground">Name</p>
-            <p className="font-medium">{profile?.full_name || "—"}</p>
-            <p className="mt-3 text-xs text-muted-foreground">Phone</p>
-            <p className="font-medium">{profile?.phone || "—"}</p>
-            {profile?.email && (
-              <>
-                <p className="mt-3 text-xs text-muted-foreground">Email</p>
-                <p className="font-medium">{profile.email}</p>
-              </>
-            )}
-          </div>
-          {isAgent && (
-            <Button asChild variant="outline" className="w-full h-12 rounded-2xl">
-              <Link to="/agent"><Store className="mr-2 h-4 w-4" /> Open Agent Store</Link>
-            </Button>
-          )}
-          {isAdmin && (
-            <Button asChild variant="outline" className="w-full h-12 rounded-2xl">
-              <Link to="/admin"><Shield className="mr-2 h-4 w-4" /> Admin Console</Link>
-            </Button>
-          )}
-          <Button onClick={() => signOut().then(() => nav("/auth"))} variant="ghost" className="w-full h-12 rounded-2xl text-destructive hover:text-destructive">
-            <LogOut className="mr-2 h-4 w-4" /> Sign out
-          </Button>
-          {settings?.support_phone && (
-            <p className="text-xs text-center text-muted-foreground">Support: {settings.support_phone}</p>
-          )}
-        </div>
-      </BottomSheet>
     </AppShell>
   );
 };
 
-function QuickAction({ icon, label, onClick }: { icon: React.ReactNode; label: string; onClick: () => void }) {
+function QuickAction({ icon, label, to }: { icon: React.ReactNode; label: string; to: string }) {
   return (
-    <button
-      onClick={onClick}
+    <Link
+      to={to}
       className="rounded-2xl bg-card border border-border/60 p-4 flex flex-col items-center gap-2 shadow-soft hover:scale-[1.03] hover:shadow-float transition-all active:scale-95"
     >
       <div className="h-10 w-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center [&_svg]:h-5 [&_svg]:w-5">
         {icon}
       </div>
       <span className="text-xs font-medium">{label}</span>
-    </button>
+    </Link>
   );
+}
+
+function StatCard({ title, value, helper }: { title: string; value: string; helper: string }) {
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-soft">
+      <p className="text-xs uppercase tracking-wide text-muted-foreground">{title}</p>
+      <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
+      <p className="mt-1 text-sm text-muted-foreground">{helper}</p>
+    </div>
+  );
+}
+
+function User({ className }: { className?: string }) {
+  return <UserIcon className={className} />;
 }
 
 function StatusPill({ status }: { status: string }) {

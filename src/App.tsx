@@ -8,6 +8,10 @@ import { RequireAuth } from "@/components/RequireAuth";
 import HomePage from "./pages/Home.tsx";
 import Index from "./pages/Index.tsx";
 import AuthPage from "./pages/Auth.tsx";
+import DashboardBuyPage from "./pages/DashboardBuy.tsx";
+import DashboardTrackPage from "./pages/DashboardTrack.tsx";
+import DashboardAgentPage from "./pages/DashboardAgent.tsx";
+import DashboardProfilePage from "./pages/DashboardProfile.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -23,6 +27,10 @@ const App = () => (
             <Route path="/" element={<HomePage />} />
             <Route path="/auth" element={<AuthPage />} />
             <Route path="/dashboard" element={<RequireAuth><Index /></RequireAuth>} />
+            <Route path="/dashboard/buy" element={<RequireAuth><DashboardBuyPage /></RequireAuth>} />
+            <Route path="/dashboard/track" element={<RequireAuth><DashboardTrackPage /></RequireAuth>} />
+            <Route path="/dashboard/agent" element={<RequireAuth><DashboardAgentPage /></RequireAuth>} />
+            <Route path="/dashboard/profile" element={<RequireAuth><DashboardProfilePage /></RequireAuth>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
