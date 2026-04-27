@@ -101,6 +101,30 @@ export type Database = {
         }
         Relationships: []
       }
+      allowed_emails: {
+        Row: {
+          active: boolean
+          created_at: string
+          email: string
+          id: string
+          note: string | null
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          email: string
+          id?: string
+          note?: string | null
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          email?: string
+          id?: string
+          note?: string | null
+        }
+        Relationships: []
+      }
       app_settings: {
         Row: {
           key: string
@@ -130,6 +154,7 @@ export type Database = {
           size_mb: number
           sort_order: number
           updated_at: string
+          user_price: number
         }
         Insert: {
           active?: boolean
@@ -141,6 +166,7 @@ export type Database = {
           size_mb: number
           sort_order?: number
           updated_at?: string
+          user_price: number
         }
         Update: {
           active?: boolean
@@ -152,6 +178,7 @@ export type Database = {
           size_mb?: number
           sort_order?: number
           updated_at?: string
+          user_price?: number
         }
         Relationships: [
           {
@@ -288,7 +315,7 @@ export type Database = {
           email: string | null
           full_name: string
           id: string
-          phone: string
+          phone: string | null
           updated_at: string
           username: string | null
         }
@@ -298,7 +325,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id: string
-          phone: string
+          phone?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -308,7 +335,7 @@ export type Database = {
           email?: string | null
           full_name?: string
           id?: string
-          phone?: string
+          phone?: string | null
           updated_at?: string
           username?: string | null
         }

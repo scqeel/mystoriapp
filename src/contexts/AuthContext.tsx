@@ -6,7 +6,7 @@ export type AppRole = "admin" | "agent" | "user";
 
 interface Profile {
   id: string;
-  phone: string;
+  phone: string | null;
   full_name: string;
   username: string | null;
   email: string | null;

@@ -63,9 +63,23 @@ export default function AuthPage() {
       toast({ title: "Please fill in all fields", variant: "destructive" });
       return;
     }
+
+    const normalizedEmail = suEmail.trim().toLowerCase();
+    const { data: allowed, error: allowErr } = await supabase
+      .from("allowed_emails")
+      .select("email")
+      .eq("email", normalizedEmail)
+      .eq("active", true)
+      .maybeSingle();
+
+    if (allowErr || !allowed) {
+      toast({ title: "Sign up not allowed", description: "This email is not approved yet.", variant: "destructive" });
+      return;
+    }
+
     setBusy(true);
     const { error } = await supabase.auth.signUp({
-      email: suEmail.trim().toLowerCase(),
+      email: normalizedEmail,
       password: suPassword,
       options: {
         emailRedirectTo: window.location.origin,

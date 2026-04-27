@@ -14,6 +14,7 @@ export interface BundleRow {
   size_label: string;
   size_mb: number;
   base_price: number;
+  user_price: number;
 }
 
 export function useNetworks() {

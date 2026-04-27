@@ -135,7 +135,7 @@ const Index = () => {
               <p className="mt-1 text-sm text-muted-foreground">Manage profile, store, and session actions from one place.</p>
               <div className="mt-4 space-y-2">
                 <Button asChild variant="outline" className="w-full h-11 rounded-xl">
-                  <Link to="/dashboard/profile"><User asIcon className="mr-2 h-4 w-4" /> Profile & Settings</Link>
+                  <Link to="/dashboard/profile"><UserIcon className="mr-2 h-4 w-4" /> Profile & Settings</Link>
                 </Button>
                 {isAgent && (
                   <Button asChild variant="outline" className="w-full h-11 rounded-xl">
@@ -178,10 +178,6 @@ function StatCard({ title, value, helper }: { title: string; value: string; help
       <p className="mt-1 text-sm text-muted-foreground">{helper}</p>
     </div>
   );
-}
-
-function User({ className }: { className?: string }) {
-  return <UserIcon className={className} />;
 }
 
 function StatusPill({ status }: { status: string }) {

@@ -12,6 +12,7 @@ import DashboardBuyPage from "./pages/DashboardBuy.tsx";
 import DashboardTrackPage from "./pages/DashboardTrack.tsx";
 import DashboardAgentPage from "./pages/DashboardAgent.tsx";
 import DashboardProfilePage from "./pages/DashboardProfile.tsx";
+import AdminPage from "./pages/Admin.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -31,6 +32,7 @@ const App = () => (
             <Route path="/dashboard/track" element={<RequireAuth><DashboardTrackPage /></RequireAuth>} />
             <Route path="/dashboard/agent" element={<RequireAuth><DashboardAgentPage /></RequireAuth>} />
             <Route path="/dashboard/profile" element={<RequireAuth><DashboardProfilePage /></RequireAuth>} />
+            <Route path="/admin" element={<RequireAuth role="admin"><AdminPage /></RequireAuth>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
