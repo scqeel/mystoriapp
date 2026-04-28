@@ -32,6 +32,7 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
   const { data: bundles = [] } = useBundles(network?.id ?? null);
   const [bundle, setBundle] = useState<BundleRow | null>(null);
   const [phone, setPhone] = useState(defaultPhone || profile?.phone || "");
+  const [email, setEmail] = useState(profile?.email || "");
   const [phase, setPhase] = useState<Phase>("select");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [orderRef, setOrderRef] = useState<string | null>(null);
@@ -57,22 +58,30 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
       toast({ title: "Enter recipient phone", variant: "destructive" });
       return;
     }
+    if (!email || !email.includes("@")) {
+      toast({ title: "Enter a valid email", description: "Paystack requires an email for checkout.", variant: "destructive" });
+      return;
+    }
+
     setPhase("processing");
-    const { data, error } = await supabase.functions.invoke("place-order", {
+    const { data, error } = await supabase.functions.invoke("paystack-initiate", {
       body: {
+        purpose: "order",
         recipient_phone: phone.replace(/\D/g, ""),
         bundle_id: bundle.id,
         agent_slug: agentSlug ?? null,
+        email: email.trim().toLowerCase(),
+        return_url: `${window.location.origin}/payment/callback`,
       },
     });
-    if (error || !data?.ok) {
-      setErrorMsg(data?.error || error?.message || "Order failed");
+
+    if (error || !data?.ok || !data?.authorization_url) {
+      setErrorMsg(data?.error || error?.message || "Payment initialization failed");
       setPhase("error");
       return;
     }
-    setOrderRef(data?.order?.reference ?? null);
-    setPhase("success");
-    onSuccess?.();
+
+    window.location.href = data.authorization_url;
   };
 
   const accent = brandColor ?? "hsl(var(--primary))";
@@ -101,8 +110,8 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
         <div className="mx-auto h-24 w-24 rounded-full gradient-primary animate-float-pulse flex items-center justify-center shadow-glow">
           <Zap className="h-10 w-10 text-white" />
         </div>
-        <p className="mt-6 text-lg font-medium">Sending data...</p>
-        <p className="text-sm text-muted-foreground">Hold tight, almost there</p>
+        <p className="mt-6 text-lg font-medium">Redirecting to Paystack...</p>
+        <p className="text-sm text-muted-foreground">Do not close this window.</p>
       </div>
     );
   }
@@ -172,6 +181,19 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
         </div>
       </div>
 
+      {/* Email */}
+      <div>
+        <p className="text-sm text-muted-foreground mb-2 ml-1">Payment email</p>
+        <Input
+          type="email"
+          inputMode="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="you@example.com"
+          className="h-14 rounded-2xl px-5 bg-card border-border/60 text-base"
+        />
+      </div>
+
       {/* Phone */}
       <div>
         <p className="text-sm text-muted-foreground mb-2 ml-1">Recipient phone</p>
@@ -196,10 +218,10 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
           </div>
           <Button
             onClick={buy}
-            disabled={!bundle || phone.length < 9}
+            disabled={!bundle || phone.length < 9 || !email}
             className="h-14 rounded-2xl px-6 text-base gradient-primary shadow-float disabled:opacity-50"
           >
-            <Zap className="mr-1 h-4 w-4" /> Buy Now
+            <Zap className="mr-1 h-4 w-4" /> Pay with Paystack
           </Button>
         </div>
       </div>

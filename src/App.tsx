@@ -15,6 +15,7 @@ import DashboardProfilePage from "./pages/DashboardProfile.tsx";
 import AdminPage from "./pages/Admin.tsx";
 import AgentDashboardPage from "./pages/AgentDashboard.tsx";
 import AgentStorePage from "./pages/AgentStore.tsx";
+import PaymentCallbackPage from "./pages/PaymentCallback.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/admin" element={<RequireAuth role="admin"><AdminPage /></RequireAuth>} />
                         <Route path="/agent" element={<RequireAuth role="agent"><AgentDashboardPage /></RequireAuth>} />
                         <Route path="/store/:slug" element={<AgentStorePage />} />
+            <Route path="/payment/callback" element={<PaymentCallbackPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

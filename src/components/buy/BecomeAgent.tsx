@@ -10,23 +10,27 @@ import { Check, Loader2, Sparkles, Store, TrendingUp } from "lucide-react";
 
 export function BecomeAgent({ onClose }: { onClose: () => void }) {
   const { data: settings } = useSettings();
-  const { isAgent, refresh } = useAuth();
+  const { isAgent, profile } = useAuth();
   const { toast } = useToast();
   const nav = useNavigate();
   const [busy, setBusy] = useState(false);
 
   const activate = async () => {
     setBusy(true);
-    const { error, data } = await supabase.functions.invoke("activate-agent");
+    const { error, data } = await supabase.functions.invoke("paystack-initiate", {
+      body: {
+        purpose: "agent_activation",
+        email: profile?.email,
+        return_url: `${window.location.origin}/payment/callback`,
+      },
+    });
     setBusy(false);
-    if (error || !data?.ok) {
-      toast({ title: "Activation failed", description: error?.message ?? data?.error, variant: "destructive" });
+    if (error || !data?.ok || !data?.authorization_url) {
+      toast({ title: "Payment initialization failed", description: error?.message ?? data?.error, variant: "destructive" });
       return;
     }
-    await refresh();
-    toast({ title: "You're an agent! 🎉", description: "Open your store dashboard" });
-    onClose();
-    nav("/agent");
+
+    window.location.href = data.authorization_url;
   };
 
   if (isAgent) {
@@ -69,7 +73,7 @@ export function BecomeAgent({ onClose }: { onClose: () => void }) {
           disabled={busy}
           className="h-14 rounded-2xl px-6 gradient-primary shadow-float"
         >
-          {busy ? <Loader2 className="animate-spin" /> : "Activate"}
+          {busy ? <Loader2 className="animate-spin" /> : "Pay & Activate"}
         </Button>
       </div>
     </div>
