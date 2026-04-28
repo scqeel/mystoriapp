@@ -22,6 +22,12 @@ interface InitiateBody {
   return_url?: string;
 }
 
+const getPaystackSecret = () =>
+  Deno.env.get("PAYSTACK_SECRET_KEY") ||
+  Deno.env.get("PAYSTACK_SECRET") ||
+  Deno.env.get("PAYSTACK_LIVE_SECRET_KEY") ||
+  "";
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -33,8 +39,12 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const anonKey = Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? Deno.env.get("SUPABASE_ANON_KEY")!;
-    const paystackSecret = Deno.env.get("PAYSTACK_SECRET_KEY");
-    if (!paystackSecret) return json({ error: "Missing PAYSTACK_SECRET_KEY" }, 500);
+    const paystackSecret = getPaystackSecret();
+    if (!paystackSecret) {
+      return json({
+        error: "Missing Paystack secret. Set PAYSTACK_SECRET_KEY in Supabase function secrets.",
+      }, 500);
+    }
 
     const admin = createClient(supabaseUrl, serviceKey);
 
@@ -142,7 +152,8 @@ Deno.serve(async (req) => {
       return json({ error: initData?.message ?? "Unable to initialize payment" }, 500);
     }
 
-    await admin.from("payments").insert({
+    // Do not block checkout redirection if DB logging fails.
+    const { error: paymentInsertError } = await admin.from("payments").insert({
       reference,
       user_id: userId,
       purpose: body.purpose,
@@ -151,6 +162,9 @@ Deno.serve(async (req) => {
       status: "initialized",
       payload,
     });
+    if (paymentInsertError) {
+      console.warn("payments insert warning", paymentInsertError.message);
+    }
 
     return json({
       ok: true,

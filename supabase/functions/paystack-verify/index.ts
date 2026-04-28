@@ -11,6 +11,12 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+const getPaystackSecret = () =>
+  Deno.env.get("PAYSTACK_SECRET_KEY") ||
+  Deno.env.get("PAYSTACK_SECRET") ||
+  Deno.env.get("PAYSTACK_LIVE_SECRET_KEY") ||
+  "";
+
 async function deliverData(_args: {
   recipient: string;
   network_code: string;
@@ -171,17 +177,10 @@ async function fulfillOrder(admin: ReturnType<typeof createClient>, payment: any
 async function verifyAndProcess(reference: string) {
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const paystackSecret = Deno.env.get("PAYSTACK_SECRET_KEY");
-  if (!paystackSecret) throw new Error("Missing PAYSTACK_SECRET_KEY");
+  const paystackSecret = getPaystackSecret();
+  if (!paystackSecret) throw new Error("Missing Paystack secret");
 
   const admin = createClient(supabaseUrl, serviceKey);
-
-  const { data: payment } = await admin.from("payments").select("*").eq("reference", reference).maybeSingle();
-  if (!payment) throw new Error("Payment record not found");
-
-  if (payment.status === "paid") {
-    return { ok: true, already_processed: true, purpose: payment.purpose, order_id: payment.order_id ?? null };
-  }
 
   const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
     headers: { Authorization: `Bearer ${paystackSecret}` },
@@ -193,6 +192,44 @@ async function verifyAndProcess(reference: string) {
   }
 
   const trx = verifyData.data;
+  const metadata = trx?.metadata ?? {};
+
+  let { data: payment } = await admin.from("payments").select("*").eq("reference", reference).maybeSingle();
+
+  if (!payment) {
+    const purpose = metadata?.purpose === "agent_activation" ? "agent_activation" : "order";
+    const payload = purpose === "order"
+      ? {
+          bundle_id: metadata?.bundle_id ?? null,
+          recipient_phone: metadata?.recipient_phone ?? null,
+          agent_slug: metadata?.agent_slug ?? null,
+          source: metadata?.source ?? "direct",
+        }
+      : { user_id: metadata?.user_id ?? null };
+
+    const amountFromPaystack = Number(trx?.amount ?? 0) / 100;
+    const { data: inserted } = await admin
+      .from("payments")
+      .insert({
+        reference,
+        user_id: metadata?.user_id ?? null,
+        purpose,
+        amount: amountFromPaystack,
+        currency: String(trx?.currency ?? "GHS"),
+        status: "initialized",
+        payload,
+      })
+      .select("*")
+      .maybeSingle();
+    payment = inserted ?? null;
+  }
+
+  if (!payment) throw new Error("Payment record unavailable");
+
+  if (payment.status === "paid") {
+    return { ok: true, already_processed: true, purpose: payment.purpose, order_id: payment.order_id ?? null };
+  }
+
   if (trx?.status !== "success") {
     await admin.from("payments").update({ status: "failed" }).eq("id", payment.id);
     return { ok: false, status: trx?.status ?? "failed" };
