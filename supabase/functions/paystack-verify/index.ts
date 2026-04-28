@@ -86,14 +86,14 @@ async function fulfillOrder(admin: ReturnType<typeof createClient>, payment: any
 
   const { data: bundle, error: bErr } = await admin
     .from("bundles")
-    .select("id, base_price, user_price, size_mb, network_id, networks:networks(code)")
+    .select("id, base_price, size_mb, network_id, networks:networks(code)")
     .eq("id", bundleId)
     .maybeSingle();
 
   if (bErr || !bundle) throw new Error("Bundle not found");
 
   let agentId: string | null = null;
-  let sellPrice = Number(bundle.user_price ?? bundle.base_price);
+  let sellPrice = Number(bundle.base_price);
   let agentProfit = 0;
   let source: "direct" | "agent_store" = "direct";
 

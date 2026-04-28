@@ -69,13 +69,13 @@ Deno.serve(async (req) => {
 
       const { data: bundle, error: bundleErr } = await admin
         .from("bundles")
-        .select("id, base_price, user_price")
+        .select("id, base_price, size_label, network_id")
         .eq("id", body.bundle_id)
         .maybeSingle();
 
       if (bundleErr || !bundle) return json({ error: "Bundle not found" }, 404);
 
-      amount = Number(bundle.user_price ?? bundle.base_price);
+      amount = Number(bundle.base_price);
       let source: "direct" | "agent_store" = "direct";
 
       if (body.agent_slug) {
