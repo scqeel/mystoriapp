@@ -1,9 +1,19 @@
 import { Link } from "react-router-dom";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { ArrowLeft, BriefcaseBusiness } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 import { AppShell } from "@/components/AppShell";
 import { BecomeAgent } from "@/components/buy/BecomeAgent";
 
 export default function DashboardAgentPage() {
+    const { isAgent } = useAuth();
+    const nav = useNavigate();
+
+    useEffect(() => {
+      if (isAgent) nav("/agent", { replace: true });
+    }, [isAgent, nav]);
+
   return (
     <AppShell>
       <div className="mx-auto w-full max-w-[1100px] px-5 py-6 md:px-8 xl:px-12">

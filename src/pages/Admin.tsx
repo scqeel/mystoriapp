@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BellRing, CheckCircle2, Loader2, Settings, Trash2, UserCog, Users } from "lucide-react";
+import { ArrowLeft, BellRing, CheckCircle2, Loader2, RefreshCw, Settings, Trash2, UserCog, Users } from "lucide-react";
+import { formatGB } from "@/lib/format";
 import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,7 @@ export default function AdminPage() {
         </div>
 
         <div className="grid gap-5 lg:grid-cols-12">
-          <aside className="rounded-3xl border border-border/60 bg-card p-3 shadow-soft lg:col-span-3 xl:col-span-2">
+          <aside className="self-start sticky top-6 rounded-3xl border border-border/60 bg-card p-4 shadow-soft lg:col-span-3">
             <AdminTab label="Overview" value="overview" tab={tab} setTab={setTab} />
             <AdminTab label="Users" value="users" tab={tab} setTab={setTab} />
             <AdminTab label="Orders" value="orders" tab={tab} setTab={setTab} />
@@ -72,7 +73,7 @@ function AdminTab({
     <button
       onClick={() => setTab(value)}
       className={[
-        "w-full rounded-xl px-3 py-2 text-left text-sm transition-colors",
+        "w-full rounded-xl px-4 py-2.5 text-left text-sm font-medium transition-colors",
         tab === value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
       ].join(" ")}
     >
@@ -211,13 +212,31 @@ function UsersSection() {
   );
 }
 
+function StatusBadge({ status }: { status: string }) {
+  const cls: Record<string, string> = {
+    delivered: "bg-green-500/15 text-green-400",
+    pending: "bg-yellow-500/15 text-yellow-400",
+    processing: "bg-blue-500/15 text-blue-400",
+    failed: "bg-red-500/15 text-red-400",
+  };
+  return (
+    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${cls[status] ?? "bg-muted text-muted-foreground"}`}>
+      {status}
+    </span>
+  );
+}
+
 function OrdersSection() {
+  const qc = useQueryClient();
+  const { toast } = useToast();
+  const [retryId, setRetryId] = useState<string | null>(null);
+
   const { data, isLoading } = useQuery({
     queryKey: ["admin-orders"],
     queryFn: async () => {
       const { data: orders } = await supabase
         .from("orders")
-        .select("id, reference, source, status, sell_price, created_at, customer_user_id, recipient_phone, bundle:bundles(size_label), network:networks(name, logo_emoji), agent:agent_profiles(store_name)")
+        .select("id, reference, bundle_id, source, status, sell_price, created_at, customer_user_id, recipient_phone, bundle:bundles(size_label), network:networks(name, logo_emoji), agent:agent_profiles(store_name)")
         .order("created_at", { ascending: false })
         .limit(200);
 
@@ -236,26 +255,72 @@ function OrdersSection() {
     },
   });
 
+  const retryOrder = async (order: any) => {
+    if (!order.bundle_id || !order.recipient_phone) return;
+    setRetryId(order.id);
+    const { error } = await supabase.functions.invoke("place-order", {
+      body: { recipient_phone: order.recipient_phone, bundle_id: order.bundle_id },
+    });
+    setRetryId(null);
+    if (error) {
+      toast({ title: "Retry failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Order retried", description: "A new delivery attempt has been placed." });
+    qc.invalidateQueries({ queryKey: ["admin-orders"] });
+  };
+
   if (isLoading) return <LoadingCard text="Loading orders..." />;
 
   return (
     <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
       <h2 className="text-xl font-semibold">Orders</h2>
       <p className="mt-1 text-sm text-muted-foreground">Direct users, agent dashboard, and agent store orders.</p>
-      <div className="mt-4 space-y-3">
-        {data?.map((o: any) => (
-          <div key={o.id} className="rounded-2xl border border-border/60 bg-background/50 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="font-medium">{o.network?.logo_emoji || "📦"} {o.network?.name} · {o.bundle?.size_label}</p>
-              <p className="text-sm font-semibold">{formatGHS(o.sell_price)}</p>
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">Ref: {o.reference} · {timeAgo(o.created_at)}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Source: {o.source} · Status: {o.status}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Recipient: {o.recipient_phone}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Customer: {o.customer?.full_name || o.customer?.email || "Guest"}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Agent Store: {o.agent?.store_name || "N/A"}</p>
-          </div>
-        ))}
+      <div className="mt-4 overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b border-border/60 text-left text-xs text-muted-foreground">
+              <th className="pb-2.5 pr-4 font-medium">Network / Bundle</th>
+              <th className="pb-2.5 pr-4 font-medium">Recipient</th>
+              <th className="pb-2.5 pr-4 font-medium">Customer</th>
+              <th className="pb-2.5 pr-4 font-medium">Source</th>
+              <th className="pb-2.5 pr-4 font-medium">Price</th>
+              <th className="pb-2.5 pr-4 font-medium">Status</th>
+              <th className="pb-2.5 pr-4 font-medium">Date</th>
+              <th className="pb-2.5 font-medium"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.map((o: any) => (
+              <tr key={o.id} className="border-b border-border/40 last:border-0 hover:bg-accent/30 transition-colors">
+                <td className="py-3 pr-4">
+                  <span className="font-medium">{o.network?.logo_emoji || "📦"} {o.network?.name}</span>
+                  <span className="ml-1 text-xs text-muted-foreground">{o.bundle?.size_label}</span>
+                </td>
+                <td className="py-3 pr-4 font-mono text-xs">{o.recipient_phone}</td>
+                <td className="py-3 pr-4">{o.customer?.full_name || o.customer?.email || <span className="text-muted-foreground">Guest</span>}</td>
+                <td className="py-3 pr-4 text-xs capitalize text-muted-foreground">{o.source?.replace("_", " ")}</td>
+                <td className="py-3 pr-4 font-semibold">{formatGHS(o.sell_price)}</td>
+                <td className="py-3 pr-4"><StatusBadge status={o.status} /></td>
+                <td className="py-3 pr-4 text-xs text-muted-foreground whitespace-nowrap">{timeAgo(o.created_at)}</td>
+                <td className="py-3">
+                  {o.status === "failed" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 rounded-lg text-xs"
+                      disabled={retryId === o.id}
+                      onClick={() => retryOrder(o)}
+                    >
+                      {retryId === o.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <><RefreshCw className="mr-1 h-3 w-3" />Retry</>}
+                    </Button>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {!data?.length && <p className="mt-6 text-center text-sm text-muted-foreground">No orders yet.</p>}
       </div>
     </div>
   );
@@ -345,7 +410,7 @@ function WithdrawalsSection() {
 function PricingSection() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const [form, setForm] = useState({ network_id: "", size_label: "", size_mb: "", user_price: "", base_price: "" });
+  const [form, setForm] = useState({ network_id: "", size_label: "", size_gb: "", user_price: "", base_price: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activationFee, setActivationFee] = useState("50");
 
@@ -366,11 +431,11 @@ function PricingSection() {
   }, [payload?.activationFee]);
 
   const saveBundle = async () => {
-    if (!form.network_id || !form.size_label || !form.size_mb || !form.user_price || !form.base_price) return;
+    if (!form.network_id || !form.size_label || !form.size_gb || !form.user_price || !form.base_price) return;
     const row = {
       network_id: form.network_id,
       size_label: form.size_label,
-      size_mb: Number(form.size_mb),
+      size_mb: Math.round(Number(form.size_gb) * 1000),
       user_price: Number(form.user_price),
       base_price: Number(form.base_price),
       active: true,
@@ -429,7 +494,7 @@ function PricingSection() {
             {payload?.networks.map((n: any) => <option key={n.id} value={n.id}>{n.name}</option>)}
           </select>
           <Input placeholder="Package label" value={form.size_label} onChange={(e) => setForm((p) => ({ ...p, size_label: e.target.value }))} className="h-11" />
-          <Input placeholder="Size MB" value={form.size_mb} onChange={(e) => setForm((p) => ({ ...p, size_mb: e.target.value }))} className="h-11" />
+          <Input placeholder="Size (GB)" type="number" step="0.5" min="0" value={form.size_gb} onChange={(e) => setForm((p) => ({ ...p, size_gb: e.target.value }))} className="h-11" />
           <Input placeholder="User price" value={form.user_price} onChange={(e) => setForm((p) => ({ ...p, user_price: e.target.value }))} className="h-11" />
           <Input placeholder="Agent base" value={form.base_price} onChange={(e) => setForm((p) => ({ ...p, base_price: e.target.value }))} className="h-11" />
         </div>
@@ -442,7 +507,7 @@ function PricingSection() {
           {payload?.bundles.map((b: any) => (
             <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-background/50 p-3">
               <div>
-                <p className="font-medium">{b.size_label} ({b.size_mb}MB)</p>
+                <p className="font-medium">{b.size_label} ({formatGB(b.size_mb)})</p>
                 <p className="text-xs text-muted-foreground">User: {formatGHS(Number(b.user_price ?? b.base_price))} · Agent base: {formatGHS(Number(b.base_price))}</p>
               </div>
               <div className="flex gap-2">
@@ -454,7 +519,7 @@ function PricingSection() {
                     setForm({
                       network_id: b.network_id,
                       size_label: b.size_label,
-                      size_mb: String(b.size_mb),
+                      size_gb: String(b.size_mb / 1000),
                       user_price: String(b.user_price ?? b.base_price),
                       base_price: String(b.base_price),
                     });
@@ -489,15 +554,10 @@ function SiteSettingsSection() {
   const [supportEmail, setSupportEmail] = useState("");
   const [whatsappLink, setWhatsappLink] = useState("");
   const [notice, setNotice] = useState("");
-  const [allowedEmails, setAllowedEmails] = useState("");
-
   useQuery({
     queryKey: ["admin-site-settings"],
     queryFn: async () => {
-      const [{ data: rows }, { data: whitelist }] = await Promise.all([
-        supabase.from("app_settings").select("key, value"),
-        supabase.from("allowed_emails").select("email").eq("active", true).order("email"),
-      ]);
+      const { data: rows } = await supabase.from("app_settings").select("key, value");
       const map: Record<string, any> = {};
       (rows ?? []).forEach((r: any) => (map[r.key] = r.value));
 
@@ -505,7 +565,6 @@ function SiteSettingsSection() {
       setSupportEmail(String(map.support_email ?? ""));
       setWhatsappLink(String(map.whatsapp_group_link ?? ""));
       setNotice(String(map.popup_notice ?? ""));
-      setAllowedEmails((whitelist ?? []).map((r: any) => r.email).join("\n"));
       return true;
     },
     staleTime: 60_000,
@@ -525,18 +584,6 @@ function SiteSettingsSection() {
       return;
     }
 
-    const parsed = allowedEmails
-      .split("\n")
-      .map((s) => s.trim().toLowerCase())
-      .filter(Boolean);
-
-    await supabase.from("allowed_emails").delete().neq("email", "");
-
-    if (parsed.length) {
-      const entries = parsed.map((email) => ({ email, active: true }));
-      await supabase.from("allowed_emails").upsert(entries as any, { onConflict: "email" });
-    }
-
     toast({ title: "Site settings updated" });
     qc.invalidateQueries({ queryKey: ["app_settings"] });
   };
@@ -544,7 +591,7 @@ function SiteSettingsSection() {
   return (
     <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
       <h2 className="text-xl font-semibold">Site Settings</h2>
-      <p className="mt-1 text-sm text-muted-foreground">Popup notifications, support channels, and email whitelist.</p>
+      <p className="mt-1 text-sm text-muted-foreground">Popup notifications and support channels.</p>
 
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <Input value={supportPhone} onChange={(e) => setSupportPhone(e.target.value)} placeholder="Support contact" className="h-11" />
@@ -555,16 +602,6 @@ function SiteSettingsSection() {
       <div className="mt-4">
         <label className="text-xs text-muted-foreground">Popup notice for users</label>
         <Input value={notice} onChange={(e) => setNotice(e.target.value)} placeholder="Type notification to show on dashboard" className="mt-1 h-11" />
-      </div>
-
-      <div className="mt-4">
-        <label className="text-xs text-muted-foreground">Allowed signup emails (one per line)</label>
-        <textarea
-          value={allowedEmails}
-          onChange={(e) => setAllowedEmails(e.target.value)}
-          rows={8}
-          className="mt-1 w-full rounded-xl border border-border/60 bg-background p-3 text-sm text-foreground"
-        />
       </div>
 
       <Button className="mt-4 h-10 rounded-lg" onClick={saveSettings}>

@@ -30,6 +30,14 @@ export const slugify = (s: string): string =>
     .replace(/-+/g, "-")
     .slice(0, 40);
 
+export const formatGB = (mb: number): string => {
+  if (mb >= 1000) {
+    const gb = mb / 1000;
+    return `${gb % 1 === 0 ? gb : gb.toFixed(1)}GB`;
+  }
+  return `${mb}MB`;
+};
+
 export const timeAgo = (iso: string): string => {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);

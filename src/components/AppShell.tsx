@@ -54,7 +54,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           className="fixed bottom-5 right-5 z-40 inline-flex h-12 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground shadow-float hover:bg-primary/90"
         >
           <MessageCircle className="h-4 w-4" />
-          Support
+          WhatsApp
         </a>
       )}
     </div>
