@@ -35,8 +35,8 @@ export default function HomePage() {
           </Button>
         </header>
 
-        <section className="grid flex-1 items-center gap-10 py-10 lg:grid-cols-12">
-          <div className="animate-fade-in space-y-6 text-left">
+        <section className="grid flex-1 items-center gap-8 py-10 lg:grid-cols-12 xl:gap-10">
+          <div className="animate-fade-in space-y-6 text-left lg:col-span-5 xl:col-span-6">
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Sparkles className="h-3.5 w-3.5" />
               Enterprise-grade Data Operations
