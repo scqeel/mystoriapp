@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BriefcaseBusiness, CheckCircle2, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CheckCircle2, Search, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 
@@ -30,9 +30,19 @@ export default function HomePage() {
       <div className="mx-auto flex min-h-dvh w-full max-w-[1440px] flex-col px-6 pb-14 pt-8 md:px-8 xl:px-10">
         <header className="flex items-center justify-between rounded-2xl border border-border/60 bg-card/60 px-4 py-3 backdrop-blur-sm md:px-6">
           <Logo size="md" />
-          <Button asChild variant="ghost" className="rounded-xl text-foreground">
-            <Link to="/auth?tab=signin">Sign in</Link>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline" className="h-10 rounded-xl border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/20">
+              <Link to="/buy">Buy without account</Link>
+            </Button>
+            <Button asChild variant="ghost" className="rounded-xl text-foreground">
+              <Link to="/track" className="inline-flex items-center gap-1">
+                <Search className="h-3.5 w-3.5" /> Track
+              </Link>
+            </Button>
+            <Button asChild variant="ghost" className="rounded-xl text-foreground">
+              <Link to="/auth?tab=signin">Sign in</Link>
+            </Button>
+          </div>
         </header>
 
         <section className="grid flex-1 items-center gap-8 py-10 lg:grid-cols-12 xl:gap-10">
@@ -48,6 +58,12 @@ export default function HomePage() {
               OneGig is a data reselling website for agents and store owners. Buy bundles at base price, set your own prices, and earn profit on every customer purchase.
             </p>
             <div className="flex flex-wrap items-center gap-3">
+              <Button asChild className="h-12 rounded-xl px-6 text-sm font-semibold shadow-float">
+                <Link to="/buy">
+                  Buy Without Account
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+              </Button>
               <Button asChild className="h-12 rounded-xl px-6 text-sm font-semibold shadow-float">
                 <Link to="/auth?tab=signup">
                   Start Reselling

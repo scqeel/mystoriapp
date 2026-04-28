@@ -282,76 +282,78 @@ function StoreSection({
         {isLoading ? (
           <p className="mt-6 text-sm text-muted-foreground">Loading…</p>
         ) : (
-          <div className="mt-4 overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-border/60 text-left text-xs text-muted-foreground">
-                  <th className="pb-2.5 pr-4 font-medium">Network</th>
-                  <th className="pb-2.5 pr-4 font-medium">Bundle</th>
-                  <th className="pb-2.5 pr-4 font-medium">Base Price</th>
-                  <th className="pb-2.5 pr-4 font-medium">Your Price</th>
-                  <th className="pb-2.5 font-medium">Profit</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(payload?.bundles ?? []).map((b: any) => {
-                  const net = networkMap.get(b.network_id) as any;
-                  const sellPrice = Number(prices[b.id] ?? 0);
-                  const profit = sellPrice - Number(b.base_price);
-                  return (
-                    <tr
-                      key={b.id}
-                      className="border-b border-border/40 last:border-0"
-                    >
-                      <td className="py-3 pr-4">
-                        {net?.logo_emoji} {net?.name}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <span className="font-medium">{b.size_label}</span>
-                        <span className="ml-1.5 text-xs text-muted-foreground">
-                          {formatGB(b.size_mb)}
-                        </span>
-                      </td>
-                      <td className="py-3 pr-4 text-muted-foreground">
-                        {formatGHS(b.base_price)}
-                      </td>
-                      <td className="py-3 pr-4">
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.5"
-                          className="h-9 w-28 rounded-lg"
-                          value={prices[b.id] ?? ""}
-                          placeholder={String(b.base_price)}
-                          onChange={(e) =>
-                            setPrices((p) => ({
-                              ...p,
-                              [b.id]: e.target.value,
-                            }))
-                          }
-                        />
-                      </td>
-                      <td className="py-3">
-                        <span
-                          className={cn(
-                            "text-xs font-medium",
-                            profit > 0
-                              ? "text-green-400"
-                              : profit < 0
-                              ? "text-destructive"
-                              : "text-muted-foreground"
-                          )}
-                        >
-                          {profit !== 0
-                            ? `${profit > 0 ? "+" : ""}${formatGHS(profit)}`
-                            : "—"}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="mt-4 space-y-4">
+            {(payload?.networks ?? []).map((n: any) => {
+              const networkBundles = (payload?.bundles ?? []).filter((b: any) => b.network_id === n.id);
+              if (!networkBundles.length) return null;
+
+              return (
+                <div key={n.id} className="rounded-2xl border border-border/60 bg-background/40 p-4">
+                  <h4 className="mb-3 text-sm font-semibold text-foreground">
+                    {n.logo_emoji} {n.name}
+                  </h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border/60 text-left text-xs text-muted-foreground">
+                          <th className="pb-2.5 pr-4 font-medium">Bundle</th>
+                          <th className="pb-2.5 pr-4 font-medium">Base Price</th>
+                          <th className="pb-2.5 pr-4 font-medium">Your Price</th>
+                          <th className="pb-2.5 font-medium">Profit</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {networkBundles.map((b: any) => {
+                          const sellPrice = Number(prices[b.id] ?? 0);
+                          const profit = sellPrice - Number(b.base_price);
+                          return (
+                            <tr key={b.id} className="border-b border-border/40 last:border-0">
+                              <td className="py-3 pr-4">
+                                <span className="font-medium">{b.size_label}</span>
+                                <span className="ml-1.5 text-xs text-muted-foreground">{formatGB(b.size_mb)}</span>
+                              </td>
+                              <td className="py-3 pr-4 text-muted-foreground">{formatGHS(b.base_price)}</td>
+                              <td className="py-3 pr-4">
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="0.5"
+                                  className="h-9 w-28 rounded-lg"
+                                  value={prices[b.id] ?? ""}
+                                  placeholder={String(b.base_price)}
+                                  onChange={(e) =>
+                                    setPrices((p) => ({
+                                      ...p,
+                                      [b.id]: e.target.value,
+                                    }))
+                                  }
+                                />
+                              </td>
+                              <td className="py-3">
+                                <span
+                                  className={cn(
+                                    "text-xs font-medium",
+                                    profit > 0
+                                      ? "text-green-400"
+                                      : profit < 0
+                                      ? "text-destructive"
+                                      : "text-muted-foreground"
+                                  )}
+                                >
+                                  {profit !== 0
+                                    ? `${profit > 0 ? "+" : ""}${formatGHS(profit)}`
+                                    : "—"}
+                                </span>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

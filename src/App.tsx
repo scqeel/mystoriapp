@@ -12,6 +12,8 @@ import DashboardBuyPage from "./pages/DashboardBuy.tsx";
 import DashboardTrackPage from "./pages/DashboardTrack.tsx";
 import DashboardAgentPage from "./pages/DashboardAgent.tsx";
 import DashboardProfilePage from "./pages/DashboardProfile.tsx";
+import PublicBuyPage from "./pages/PublicBuy.tsx";
+import PublicTrackPage from "./pages/PublicTrack.tsx";
 import AdminPage from "./pages/Admin.tsx";
 import AgentDashboardPage from "./pages/AgentDashboard.tsx";
 import AgentStorePage from "./pages/AgentStore.tsx";
@@ -30,6 +32,8 @@ const App = () => (
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/auth" element={<AuthPage />} />
+            <Route path="/buy" element={<PublicBuyPage />} />
+            <Route path="/track" element={<PublicTrackPage />} />
             <Route path="/dashboard" element={<RequireAuth><Index /></RequireAuth>} />
             <Route path="/dashboard/buy" element={<RequireAuth><DashboardBuyPage /></RequireAuth>} />
             <Route path="/dashboard/track" element={<RequireAuth><DashboardTrackPage /></RequireAuth>} />
