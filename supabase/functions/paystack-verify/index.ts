@@ -194,18 +194,54 @@ async function verifyAndProcess(reference: string) {
   const trx = verifyData.data;
   const metadata = trx?.metadata ?? {};
 
-  let { data: payment } = await admin.from("payments").select("*").eq("reference", reference).maybeSingle();
+  const purpose = metadata?.purpose === "agent_activation" ? "agent_activation" : "order";
+  const fallbackPayload = purpose === "order"
+    ? {
+        bundle_id: metadata?.bundle_id ?? null,
+        recipient_phone: metadata?.recipient_phone ?? null,
+        agent_slug: metadata?.agent_slug ?? null,
+        source: metadata?.source ?? "direct",
+      }
+    : { user_id: metadata?.user_id ?? null };
+
+  const { data: paymentRow, error: paymentReadErr } = await admin
+    .from("payments")
+    .select("*")
+    .eq("reference", reference)
+    .maybeSingle();
+
+  const paymentsTableAvailable = !paymentReadErr || !/payments/i.test(paymentReadErr.message ?? "");
+
+  // If payments table is unavailable (migration not yet applied), continue with stateless verification
+  // so checkout and fulfillment still work.
+  if (!paymentsTableAvailable) {
+    if (trx?.status !== "success") {
+      return { ok: false, status: trx?.status ?? "failed" };
+    }
+
+    let orderId: string | null = null;
+
+    if (purpose === "order") {
+      orderId = await fulfillOrder(admin, {
+        reference,
+        user_id: metadata?.user_id ?? null,
+        payload: fallbackPayload,
+      });
+    }
+
+    if (purpose === "agent_activation") {
+      const userId = metadata?.user_id;
+      if (!userId) throw new Error("Missing user for activation payment");
+      await activateAgent(admin, String(userId));
+    }
+
+    return { ok: true, purpose, order_id: orderId, payments_logged: false };
+  }
+
+  let payment = paymentRow;
 
   if (!payment) {
-    const purpose = metadata?.purpose === "agent_activation" ? "agent_activation" : "order";
-    const payload = purpose === "order"
-      ? {
-          bundle_id: metadata?.bundle_id ?? null,
-          recipient_phone: metadata?.recipient_phone ?? null,
-          agent_slug: metadata?.agent_slug ?? null,
-          source: metadata?.source ?? "direct",
-        }
-      : { user_id: metadata?.user_id ?? null };
+    const payload = fallbackPayload;
 
     const amountFromPaystack = Number(trx?.amount ?? 0) / 100;
     const { data: inserted } = await admin
