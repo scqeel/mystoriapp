@@ -5,18 +5,18 @@ import { Button } from "@/components/ui/button";
 
 const features = [
   {
-    title: "Instant data delivery",
-    description: "Buy and send mobile data in seconds with clean tracking and confirmations.",
+    title: "Wholesale data bundles",
+    description: "Access admin-managed bundle pricing built for profitable data reselling.",
     icon: Zap,
   },
   {
-    title: "Reliable order tracking",
-    description: "Monitor your order status live from pending to delivered.",
+    title: "Reseller storefront",
+    description: "Launch your own public store link so customers can buy data directly.",
     icon: CheckCircle2,
   },
   {
-    title: "Secure account access",
-    description: "Sign in safely and keep your purchases, profile, and history in one place.",
+    title: "Agent profit tracking",
+    description: "Track sales, margins, withdrawals, and order performance in one dashboard.",
     icon: ShieldCheck,
   },
 ];
@@ -39,18 +39,18 @@ export default function HomePage() {
           <div className="animate-fade-in space-y-6 text-left lg:col-span-5 xl:col-span-6">
             <p className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
               <Sparkles className="h-3.5 w-3.5" />
-              Enterprise-grade Data Operations
+              Data Reselling Platform
             </p>
             <h1 className="text-4xl font-bold leading-tight text-foreground md:text-5xl xl:text-6xl">
-              One sleek command center for data sales and operations.
+              Buy, resell, and manage mobile data from one SaaS dashboard.
             </h1>
             <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-              Modern dashboards for customers, admins, and agents. Process orders, monitor activity, and scale your storefront from one fast interface.
+              OneGig is a data reselling website for agents and store owners. Buy bundles at base price, set your own prices, and earn profit on every customer purchase.
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <Button asChild className="h-12 rounded-xl px-6 text-sm font-semibold shadow-float">
                 <Link to="/auth?tab=signup">
-                  Launch Dashboard
+                  Start Reselling
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
@@ -63,15 +63,15 @@ export default function HomePage() {
           <div className="animate-fade-up lg:col-span-7 xl:col-span-6">
             <div className="rounded-3xl border border-border/60 bg-card/70 p-5 shadow-float backdrop-blur-sm md:p-6">
               <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm font-medium text-foreground">Live Risk & Activity Snapshot</p>
+                <p className="text-sm font-medium text-foreground">Live Reseller Activity Snapshot</p>
                 <span className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">Realtime</span>
               </div>
               <div className="grid gap-3 sm:grid-cols-4">
                 {[
-                  { label: "Total Orders", value: "2,481" },
-                  { label: "Success Rate", value: "99.1%" },
-                  { label: "Agents", value: "412" },
-                  { label: "Revenue", value: "GHS 74k" },
+                  { label: "Reseller Orders", value: "2,481" },
+                  { label: "Delivery Rate", value: "99.1%" },
+                  { label: "Active Agents", value: "412" },
+                  { label: "Agent Payouts", value: "GHS 74k" },
                 ].map((m) => (
                   <div key={m.label} className="rounded-2xl border border-border/60 bg-background/60 p-3">
                     <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{m.label}</p>
@@ -110,9 +110,9 @@ export default function HomePage() {
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-primary">Become an agent</p>
-              <h2 className="mt-2 text-2xl font-semibold text-foreground">Start your own data store and earn on every sale.</h2>
+              <h2 className="mt-2 text-2xl font-semibold text-foreground">Start your data reselling store and earn on every sale.</h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Create your account, activate as an agent, and run your own branded storefront.
+                Create your account, activate as an agent, set your own bundle prices, and run your own branded data storefront.
               </p>
             </div>
             <Button asChild className="h-12 rounded-xl px-6 text-sm font-semibold">
