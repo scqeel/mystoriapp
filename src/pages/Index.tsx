@@ -1,16 +1,17 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { AppShell } from "@/components/AppShell";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Briefcase, Package, Shield, Signal, Store, User as UserIcon, Wallet } from "lucide-react";
+import { ArrowRight, Briefcase, Home, Package, Shield, Signal, Store, User as UserIcon, Wallet } from "lucide-react";
 import { formatGHS, timeAgo } from "@/lib/format";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 const Index = () => {
   const { profile, isAdmin, isAgent, session } = useAuth();
   const nav = useNavigate();
+  const loc = useLocation();
 
   const { data: recent } = useQuery({
     queryKey: ["my-recent-orders", session?.user?.id],
@@ -33,26 +34,25 @@ const Index = () => {
 
   const greeting = profile?.full_name?.split(" ")[0] || profile?.username || "there";
 
-  return (
-    <AppShell>
-      <div className="mx-auto w-full max-w-[1360px] px-5 pt-6 md:px-8 xl:px-12">
-        {/* Top bar */}
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">Hi, {greeting} 👋</p>
-            <Logo size="sm" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Link
-              to="/dashboard/profile"
-              className="h-11 w-11 rounded-2xl bg-card border border-border/60 shadow-soft flex items-center justify-center hover:scale-105 transition-transform"
-            >
-              <UserIcon className="h-5 w-5" />
-            </Link>
-          </div>
-        </div>
+  const sidebarItems = [
+    { label: "Overview", to: "/dashboard", icon: <Home className="h-4 w-4" />, active: loc.pathname === "/dashboard" },
+    { label: "Buy Data", to: "/dashboard/buy", icon: <Signal className="h-4 w-4" />, active: loc.pathname === "/dashboard/buy" },
+    { label: "Track Orders", to: "/dashboard/track", icon: <Package className="h-4 w-4" />, active: loc.pathname === "/dashboard/track" },
+    { label: isAgent ? "My Store" : "Become Agent", to: isAgent ? "/agent" : "/dashboard/agent", icon: <Briefcase className="h-4 w-4" />, active: loc.pathname === "/dashboard/agent" || loc.pathname === "/agent" },
+    { label: "Profile", to: "/dashboard/profile", icon: <UserIcon className="h-4 w-4" />, active: loc.pathname === "/dashboard/profile" },
+  ];
 
-        <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-12">
+  return (
+    <DashboardLayout
+      title={`Welcome back, ${greeting}`}
+      subtitle="Monitor activity and complete tasks from one workspace."
+      badge={isAgent ? "Agent Account" : "Customer"}
+      sidebarHeader={<Logo size="sm" />}
+      sidebarItems={sidebarItems}
+    >
+      <div>
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           <div className="rounded-3xl gradient-primary p-6 text-primary-foreground shadow-float relative overflow-hidden md:p-8 lg:col-span-8">
             <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
             <div className="relative">
@@ -152,7 +152,7 @@ const Index = () => {
           </div>
         </div>
       </div>
-    </AppShell>
+    </DashboardLayout>
   );
 };
 

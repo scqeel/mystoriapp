@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, BellRing, CheckCircle2, Loader2, RefreshCw, Settings, Trash2, UserCog, Users } from "lucide-react";
+import { BellRing, CheckCircle2, Cog, DollarSign, Loader2, RefreshCw, Settings, ShoppingCart, Trash2, UserCog, Users } from "lucide-react";
 import { formatGB } from "@/lib/format";
-import { AppShell } from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { formatGHS, timeAgo } from "@/lib/format";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 
 type Tab = "overview" | "users" | "orders" | "withdrawals" | "pricing" | "settings";
 
@@ -22,39 +22,41 @@ type Profile = {
 
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("overview");
+  const loc = useLocation();
+
+  const sidebarItems = [
+    { label: "Overview", value: "overview", icon: <Users className="h-4 w-4" /> },
+    { label: "Users", value: "users", icon: <UserCog className="h-4 w-4" /> },
+    { label: "Orders", value: "orders", icon: <ShoppingCart className="h-4 w-4" /> },
+    { label: "Withdrawals", value: "withdrawals", icon: <DollarSign className="h-4 w-4" /> },
+    { label: "Pricing", value: "pricing", icon: <Cog className="h-4 w-4" /> },
+    { label: "Site Settings", value: "settings", icon: <Settings className="h-4 w-4" /> },
+  ];
 
   return (
-    <AppShell>
-      <div className="mx-auto w-full max-w-[1380px] px-5 py-6 md:px-8 xl:px-12">
-        <div className="mb-6 flex items-center justify-between">
-          <Link to="/dashboard" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-            <ArrowLeft className="h-4 w-4" />
-            Back to dashboard
-          </Link>
-          <div className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">Admin Console</div>
-        </div>
-
-        <div className="grid gap-5 lg:grid-cols-12">
-          <aside className="self-start sticky top-6 rounded-3xl border border-border/60 bg-card p-4 shadow-soft lg:col-span-3">
-            <AdminTab label="Overview" value="overview" tab={tab} setTab={setTab} />
-            <AdminTab label="Users" value="users" tab={tab} setTab={setTab} />
-            <AdminTab label="Orders" value="orders" tab={tab} setTab={setTab} />
-            <AdminTab label="Withdrawals" value="withdrawals" tab={tab} setTab={setTab} />
-            <AdminTab label="Pricing" value="pricing" tab={tab} setTab={setTab} />
-            <AdminTab label="Site Settings" value="settings" tab={tab} setTab={setTab} />
-          </aside>
-
-          <main className="lg:col-span-9 xl:col-span-10">
-            {tab === "overview" && <OverviewSection />}
-            {tab === "users" && <UsersSection />}
-            {tab === "orders" && <OrdersSection />}
-            {tab === "withdrawals" && <WithdrawalsSection />}
-            {tab === "pricing" && <PricingSection />}
-            {tab === "settings" && <SiteSettingsSection />}
-          </main>
-        </div>
-      </div>
-    </AppShell>
+    <DashboardLayout
+      title="Admin Dashboard"
+      subtitle="Monitor platform operations, users, transactions, and settings."
+      badge="Admin Console"
+      sidebarItems={sidebarItems.map((item) => ({
+        label: item.label,
+        icon: item.icon,
+        active: tab === (item.value as Tab),
+        onClick: () => setTab(item.value as Tab),
+      }))}
+      topActions={
+        <a href="/dashboard" className="rounded-xl border border-border/60 bg-card px-3 py-2 text-xs text-muted-foreground hover:text-foreground">
+          Back to Dashboard
+        </a>
+      }
+    >
+      {tab === "overview" && <OverviewSection />}
+      {tab === "users" && <UsersSection />}
+      {tab === "orders" && <OrdersSection />}
+      {tab === "withdrawals" && <WithdrawalsSection />}
+      {tab === "pricing" && <PricingSection />}
+      {tab === "settings" && <SiteSettingsSection />}
+    </DashboardLayout>
   );
 }
 
