@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/theme-provider";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { RequireAuth } from "@/components/RequireAuth";
 import HomePage from "./pages/Home.tsx";
@@ -20,30 +21,32 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/buy" element={<PublicBuyPage />} />
-            <Route path="/track" element={<PublicTrackPage />} />
-            <Route path="/dashboard" element={<RequireAuth><Navigate to="/dashboard/agent" replace /></RequireAuth>} />
-            <Route path="/dashboard/buy" element={<RequireAuth><Navigate to="/dashboard/agent" replace /></RequireAuth>} />
-            <Route path="/dashboard/track" element={<RequireAuth><Navigate to="/dashboard/agent" replace /></RequireAuth>} />
-            <Route path="/dashboard/agent" element={<RequireAuth><DashboardAgentPage /></RequireAuth>} />
-            <Route path="/dashboard/profile" element={<RequireAuth><Navigate to="/dashboard/agent" replace /></RequireAuth>} />
-            <Route path="/admin" element={<RequireAuth role="admin"><AdminPage /></RequireAuth>} />
-            <Route path="/agent" element={<RequireAuth role="agent"><AgentDashboardPage /></RequireAuth>} />
-            <Route path="/store/:slug" element={<AgentStorePage />} />
-            <Route path="/payment/callback" element={<PaymentCallbackPage />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
+    <ThemeProvider attribute="class" defaultTheme="light" enableSystem>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<HomePage />} />
+              <Route path="/auth" element={<AuthPage />} />
+              <Route path="/buy" element={<PublicBuyPage />} />
+              <Route path="/track" element={<PublicTrackPage />} />
+              <Route path="/dashboard" element={<RequireAuth><Navigate to="/dashboard/agent" replace /></RequireAuth>} />
+              <Route path="/dashboard/buy" element={<RequireAuth><Navigate to="/dashboard/agent" replace /></RequireAuth>} />
+              <Route path="/dashboard/track" element={<RequireAuth><Navigate to="/dashboard/agent" replace /></RequireAuth>} />
+              <Route path="/dashboard/agent" element={<RequireAuth><DashboardAgentPage /></RequireAuth>} />
+              <Route path="/dashboard/profile" element={<RequireAuth><Navigate to="/dashboard/agent" replace /></RequireAuth>} />
+              <Route path="/admin" element={<RequireAuth role="admin"><AdminPage /></RequireAuth>} />
+              <Route path="/agent" element={<RequireAuth role="agent"><AgentDashboardPage /></RequireAuth>} />
+              <Route path="/store/:slug" element={<AgentStorePage />} />
+              <Route path="/payment/callback" element={<PaymentCallbackPage />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

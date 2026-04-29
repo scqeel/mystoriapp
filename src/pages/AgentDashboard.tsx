@@ -3,20 +3,23 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Check, Copy, ExternalLink, Loader2, Package, Settings,
-  Store, TrendingUp, Wallet,
+  Store, Sun, Moon, TrendingUp, Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { BuyDataFlow } from "@/components/buy/BuyDataFlow";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { formatGHS, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/Logo";
+import { useTheme } from "next-themes";
 
-type AgentTab = "store" | "transactions" | "withdrawals" | "settings";
+type AgentTab = "buy" | "store" | "transactions" | "withdrawals" | "settings";
 
 const TABS: { label: string; value: AgentTab; icon: React.ReactNode }[] = [
+  { label: "Buy Data", value: "buy", icon: <Wallet className="h-4 w-4" /> },
   { label: "My Store", value: "store", icon: <Store className="h-4 w-4" /> },
   { label: "Transactions", value: "transactions", icon: <Package className="h-4 w-4" /> },
   { label: "Withdrawals", value: "withdrawals", icon: <Wallet className="h-4 w-4" /> },
@@ -24,9 +27,10 @@ const TABS: { label: string; value: AgentTab; icon: React.ReactNode }[] = [
 ];
 
 export default function AgentDashboard() {
-  const [tab, setTab] = useState<AgentTab>("store");
-  const { user } = useAuth();
+  const [tab, setTab] = useState<AgentTab>("buy");
+  const { user, isAdmin } = useAuth();
   const nav = useNavigate();
+  const { theme, setTheme } = useTheme();
 
   const { data: agentProfile, isLoading } = useQuery({
     queryKey: ["my-agent-profile", user?.id],
@@ -43,7 +47,7 @@ export default function AgentDashboard() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-white">
+      <div className="flex min-h-dvh items-center justify-center bg-background">
         <Loader2 className="h-6 w-6 animate-spin text-primary" />
       </div>
     );
@@ -51,7 +55,7 @@ export default function AgentDashboard() {
 
   if (!agentProfile) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-white text-center">
+      <div className="flex min-h-dvh flex-col items-center justify-center gap-4 bg-background text-center">
         <Store className="h-12 w-12 text-muted-foreground/40" />
         <p className="font-medium text-foreground">No agent profile found.</p>
         <Button variant="outline" onClick={() => nav("/dashboard/agent")}>Back</Button>
@@ -60,7 +64,7 @@ export default function AgentDashboard() {
   }
 
   return (
-    <div className="min-h-dvh bg-white">
+    <div className="min-h-dvh bg-background">
       <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-8">
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -70,7 +74,24 @@ export default function AgentDashboard() {
               <p className="text-xs text-muted-foreground">{agentProfile.store_name}</p>
             </div>
           </div>
-          <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">Back to homepage</Link>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button asChild variant="outline" size="sm" className="h-9 rounded-xl">
+                <Link to="/admin">Admin</Link>
+              </Button>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-xl"
+              onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+              aria-label="Toggle dark mode"
+            >
+              {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+            <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">Back to homepage</Link>
+          </div>
         </div>
 
         <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
@@ -96,12 +117,41 @@ export default function AgentDashboard() {
           </aside>
 
           <main>
+            {tab === "buy" && <BuySection />}
             {tab === "store" && <StoreSection agentProfile={agentProfile} userId={user?.id} />}
             {tab === "transactions" && <TransactionsSection agentId={agentProfile.id} />}
             {tab === "withdrawals" && <WithdrawalsSection userId={user?.id!} />}
             {tab === "settings" && <SettingsSection agentProfile={agentProfile} />}
           </main>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function BuySection() {
+  const { data: bundles } = useQuery({
+    queryKey: ["agent-buy-admin-prices"],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("bundles")
+        .select("id, base_price")
+        .eq("active", true);
+      return data ?? [];
+    },
+  });
+
+  const adminPrices: Record<string, number> = {};
+  (bundles ?? []).forEach((b: any) => {
+    adminPrices[b.id] = Number(b.base_price);
+  });
+
+  return (
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-soft md:p-6">
+      <h2 className="text-lg font-semibold text-foreground">Buy Data</h2>
+      <p className="mt-1 text-sm text-muted-foreground">You buy at admin-set base prices.</p>
+      <div className="mt-5">
+        <BuyDataFlow priceOverrides={adminPrices} />
       </div>
     </div>
   );
@@ -162,7 +212,7 @@ function StoreSection({ agentProfile, userId }: { agentProfile: any; userId?: st
   return (
     <div className="space-y-5">
       {/* Store link */}
-      <div className="rounded-2xl border border-border bg-white p-5 shadow-soft">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
         <h2 className="text-lg font-semibold text-foreground">Store Link</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">Share this link. Customers can buy without signing up.</p>
         <div className="mt-4 flex items-center gap-2">
@@ -179,7 +229,7 @@ function StoreSection({ agentProfile, userId }: { agentProfile: any; userId?: st
       </div>
 
       {/* Pricing */}
-      <div className="rounded-2xl border border-border bg-white p-5 shadow-soft">
+      <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
         <div className="flex items-center justify-between">
           <div>
             <h3 className="text-lg font-semibold text-foreground">Your Pricing</h3>
@@ -286,7 +336,7 @@ function TransactionsSection({ agentId }: { agentId: string }) {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading...</p>
       ) : (
-        <div className="rounded-2xl border border-border bg-white shadow-soft overflow-hidden">
+        <div className="rounded-2xl border border-border bg-card shadow-soft overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
@@ -368,14 +418,14 @@ function WithdrawalsSection({ userId }: { userId: string }) {
     <div className="space-y-5">
       {/* Balance */}
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-soft">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
           <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-muted-foreground">
             <Wallet className="h-4 w-4" /> Available Balance
           </p>
           <p className="mt-2 text-3xl font-bold text-foreground">{isLoading ? "..." : formatGHS(walletData?.balance ?? 0)}</p>
           <p className="mt-1 text-xs text-muted-foreground">Ready to withdraw</p>
         </div>
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-soft">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
           <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-widest text-muted-foreground">
             <TrendingUp className="h-4 w-4" /> Total Revenue
           </p>
@@ -385,7 +435,7 @@ function WithdrawalsSection({ userId }: { userId: string }) {
       </div>
 
       {/* Withdrawal form */}
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-soft">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
         <h2 className="text-lg font-semibold text-foreground">Request Withdrawal</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">Minimum GHS 50. Processed within 24 hours.</p>
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -395,7 +445,7 @@ function WithdrawalsSection({ userId }: { userId: string }) {
           </div>
           <div>
             <label className="text-xs font-medium text-muted-foreground">MoMo Network</label>
-            <select value={momoNetwork} onChange={(e) => setMomoNetwork(e.target.value)} className="mt-1 h-11 w-full rounded-xl border border-border bg-white px-3 text-sm text-foreground">
+            <select value={momoNetwork} onChange={(e) => setMomoNetwork(e.target.value)} className="mt-1 h-11 w-full rounded-xl border border-border bg-background px-3 text-sm text-foreground">
               <option value="">Select network</option>
               {MOMO_NETWORKS.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
@@ -416,7 +466,7 @@ function WithdrawalsSection({ userId }: { userId: string }) {
 
       {/* History */}
       {(walletData?.withdrawals?.length ?? 0) > 0 && (
-        <div className="rounded-2xl border border-border bg-white p-5 shadow-soft">
+        <div className="rounded-2xl border border-border bg-card p-5 shadow-soft">
           <h3 className="mb-4 text-base font-semibold text-foreground">Withdrawal History</h3>
           <div className="space-y-2">
             {(walletData?.withdrawals as any[]).map((w) => (
@@ -475,7 +525,7 @@ function SettingsSection({ agentProfile }: { agentProfile: any }) {
     <div>
       <h2 className="mb-1 text-lg font-semibold text-foreground">Store Settings</h2>
       <p className="mb-6 text-sm text-muted-foreground">Customize how your public store looks.</p>
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-soft">
+      <div className="rounded-2xl border border-border bg-card p-6 shadow-soft">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="md:col-span-2">
             <label className="text-xs font-medium text-muted-foreground">Store Name</label>
@@ -492,7 +542,7 @@ function SettingsSection({ agentProfile }: { agentProfile: any }) {
           <div>
             <label className="text-xs font-medium text-muted-foreground">Brand Colour</label>
             <div className="mt-1 flex items-center gap-2">
-              <input type="color" value={form.store_brand_color} onChange={(e) => f("store_brand_color", e.target.value)} className="h-11 w-11 cursor-pointer rounded-lg border border-border bg-white p-1" />
+              <input type="color" value={form.store_brand_color} onChange={(e) => f("store_brand_color", e.target.value)} className="h-11 w-11 cursor-pointer rounded-lg border border-border bg-background p-1" />
               <Input className="h-11 flex-1" value={form.store_brand_color} onChange={(e) => f("store_brand_color", e.target.value)} placeholder="#7c3aed" />
             </div>
           </div>
