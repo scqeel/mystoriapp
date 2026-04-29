@@ -6,11 +6,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatGHS } from "@/lib/format";
 import { Confetti } from "@/components/Confetti";
-import { CheckCircle2, Loader2, Zap } from "lucide-react";
+import { CheckCircle2, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-type Phase = "select" | "confirm" | "processing" | "success" | "error";
+type Phase = "select" | "processing" | "success" | "error";
 
 interface Props {
   /** When provided, this is an agent storefront purchase. */
@@ -36,6 +37,7 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
   const [phase, setPhase] = useState<Phase>("select");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [orderRef, setOrderRef] = useState<string | null>(null);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
 
   useEffect(() => {
     if (!network && networks.length) setNetwork(networks[0]);
@@ -51,6 +53,7 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
     setPhase("select");
     setOrderRef(null);
     setErrorMsg(null);
+    setCheckoutOpen(false);
   };
 
   const buy = async () => {
@@ -63,6 +66,7 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
       return;
     }
 
+    setCheckoutOpen(false);
     setPhase("processing");
     const { data, error } = await supabase.functions.invoke("paystack-initiate", {
       body: {
@@ -85,6 +89,26 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
   };
 
   const accent = brandColor ?? "hsl(var(--primary))";
+
+  const networkCode = String(network?.code ?? "").toUpperCase();
+  const cardTheme =
+    networkCode === "MTN"
+      ? {
+          idle: "border-yellow-300/70 bg-yellow-100/70 text-yellow-900 hover:bg-yellow-100",
+          active: "border-yellow-500 bg-yellow-400/80 text-yellow-950 shadow-float",
+          badge: "bg-yellow-500 text-yellow-950",
+        }
+      : networkCode === "TELECEL"
+      ? {
+          idle: "border-red-300/70 bg-red-100/70 text-red-900 hover:bg-red-100",
+          active: "border-red-500 bg-red-500/85 text-white shadow-float",
+          badge: "bg-red-600 text-white",
+        }
+      : {
+          idle: "border-blue-300/70 bg-blue-100/70 text-blue-900 hover:bg-blue-100",
+          active: "border-blue-500 bg-blue-500/85 text-white shadow-float",
+          badge: "bg-blue-600 text-white",
+        };
 
   if (phase === "success") {
     return (
@@ -153,78 +177,85 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
 
       {/* Bundles */}
       <div>
-        <p className="text-sm text-muted-foreground mb-2 ml-1">Bundle</p>
-        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-1 px-1 pb-1">
+        <p className="text-sm text-muted-foreground mb-2 ml-1">Select package</p>
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
           {bundles.map((b) => {
             const active = bundle?.id === b.id;
             return (
               <button
                 key={b.id}
-                onClick={() => setBundle(b)}
+                onClick={() => {
+                  setBundle(b);
+                  setCheckoutOpen(true);
+                }}
                 className={cn(
-                  "shrink-0 rounded-2xl border transition-all px-4 py-3 min-w-[88px] text-center",
-                  active
-                    ? "bg-primary text-primary-foreground border-primary shadow-float scale-105"
-                    : "bg-card border-border/60 hover:border-primary/40"
+                  "rounded-2xl border px-4 py-4 text-left transition-all",
+                  active ? cardTheme.active : cardTheme.idle
                 )}
               >
-                <div className="text-base font-semibold">{b.size_label}</div>
-                <div className={cn("text-xs", active ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                  {formatGHS(priceFor(b))}
-                </div>
+                <div className="text-[11px] uppercase tracking-wide opacity-80">{network?.name}</div>
+                <div className="mt-1 text-lg font-bold">{b.size_label}</div>
+                <div className="mt-1 text-sm font-semibold">{formatGHS(priceFor(b))}</div>
               </button>
             );
           })}
           {bundles.length === 0 && (
-            <div className="text-sm text-muted-foreground py-4">No bundles available</div>
+            <div className="col-span-full text-sm text-muted-foreground py-4">No bundles available</div>
           )}
         </div>
       </div>
 
-      {/* Email */}
-      <div>
-        <p className="text-sm text-muted-foreground mb-2 ml-1">Payment email</p>
-        <Input
-          type="email"
-          inputMode="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          className="h-14 rounded-2xl px-5 bg-card border-border/60 text-base"
-        />
-      </div>
+      <Dialog open={checkoutOpen} onOpenChange={setCheckoutOpen}>
+        <DialogContent className="w-[94vw] max-w-md rounded-2xl border-border/60 p-5 sm:p-6">
+          <DialogHeader>
+            <DialogTitle className="text-left">Confirm Purchase</DialogTitle>
+            <DialogDescription className="text-left">
+              Review amount, enter recipient number, then continue to Paystack.
+            </DialogDescription>
+          </DialogHeader>
 
-      {/* Phone */}
-      <div>
-        <p className="text-sm text-muted-foreground mb-2 ml-1">Recipient phone</p>
-        <Input
-          inputMode="tel"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          placeholder="024 123 4567"
-          className="h-14 rounded-2xl px-5 bg-card border-border/60 text-lg"
-        />
-      </div>
-
-      {/* Price + buy */}
-      <div className="rounded-3xl p-5 gradient-soft border border-border/60">
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">Final Price</p>
-            <p className="text-3xl font-bold tracking-tight" style={{ color: accent }}>
+          <div className="rounded-2xl border border-border/60 bg-card/70 p-4">
+            <div className="flex items-center justify-between gap-3">
+              <p className="font-semibold">{bundle?.size_label || "Package"}</p>
+              <span className={cn("rounded-full px-2.5 py-1 text-xs font-semibold", cardTheme.badge)}>{network?.name}</span>
+            </div>
+            <p className="mt-2 text-2xl font-bold" style={{ color: accent }}>
               {bundle ? formatGHS(finalPrice) : "—"}
             </p>
-            <p className="text-xs text-muted-foreground mt-1">Includes fees</p>
           </div>
+
+          <div>
+            <p className="mb-2 ml-1 text-sm text-muted-foreground">Recipient phone</p>
+            <Input
+              inputMode="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="024 123 4567"
+              className="h-12 rounded-xl border-border/60"
+            />
+          </div>
+
+          <div>
+            <p className="mb-2 ml-1 text-sm text-muted-foreground">Payment email</p>
+            <Input
+              type="email"
+              inputMode="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="you@example.com"
+              className="h-12 rounded-xl border-border/60"
+            />
+          </div>
+
           <Button
             onClick={buy}
-            disabled={!bundle || phone.length < 9 || !email}
-            className="h-14 rounded-2xl px-6 text-base gradient-primary shadow-float disabled:opacity-50"
+            disabled={!bundle || phone.replace(/\D/g, "").length < 9 || !email}
+            className="h-12 rounded-xl text-sm font-semibold"
           >
-            <Zap className="mr-1 h-4 w-4" /> Pay with Paystack
+            <Zap className="mr-1 h-4 w-4" /> Proceed to Pay
           </Button>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
