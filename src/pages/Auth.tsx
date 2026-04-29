@@ -42,7 +42,7 @@ export default function AuthPage() {
   const [suPassword, setSuPassword] = useState("");
 
   useEffect(() => {
-    if (!loading && session) nav(from || "/dashboard", { replace: true });
+    if (!loading && session) nav(from || "/dashboard/agent", { replace: true });
   }, [session, loading, nav, from]);
 
   const doSignIn = async () => {
@@ -87,8 +87,8 @@ export default function AuthPage() {
 
       // If Supabase returned a session directly, we're signed in — navigate now.
       if (data.session) {
-        toast({ title: "Account created", description: "You are now signed in." });
-        nav(from || "/dashboard", { replace: true });
+        toast({ title: "Account created", description: "Continue to activate your agent account." });
+        nav("/dashboard/agent", { replace: true });
         return;
       }
 
@@ -101,8 +101,8 @@ export default function AuthPage() {
       if (signInErr) {
         toast({ title: "Account created", description: "Please sign in to continue.", variant: "default" });
       } else {
-        toast({ title: "Account created", description: "You are now signed in." });
-        nav(from || "/dashboard", { replace: true });
+        toast({ title: "Account created", description: "Continue to activate your agent account." });
+        nav("/dashboard/agent", { replace: true });
       }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : "Unexpected error. Please try again.";

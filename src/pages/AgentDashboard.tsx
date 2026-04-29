@@ -3,22 +3,20 @@ import { Link, useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Check, Copy, ExternalLink, Loader2, Package, Settings,
-  ShoppingBag, Store, TrendingUp, Wallet,
+  Store, TrendingUp, Wallet,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BuyDataFlow } from "@/components/buy/BuyDataFlow";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
-import { formatGHS, formatGB, timeAgo } from "@/lib/format";
+import { formatGHS, timeAgo } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Logo } from "@/components/Logo";
 
-type AgentTab = "buy" | "store" | "transactions" | "withdrawals" | "settings";
+type AgentTab = "store" | "transactions" | "withdrawals" | "settings";
 
 const TABS: { label: string; value: AgentTab; icon: React.ReactNode }[] = [
-  { label: "Buy Data", value: "buy", icon: <ShoppingBag className="h-4 w-4" /> },
   { label: "My Store", value: "store", icon: <Store className="h-4 w-4" /> },
   { label: "Transactions", value: "transactions", icon: <Package className="h-4 w-4" /> },
   { label: "Withdrawals", value: "withdrawals", icon: <Wallet className="h-4 w-4" /> },
@@ -26,7 +24,7 @@ const TABS: { label: string; value: AgentTab; icon: React.ReactNode }[] = [
 ];
 
 export default function AgentDashboard() {
-  const [tab, setTab] = useState<AgentTab>("buy");
+  const [tab, setTab] = useState<AgentTab>("store");
   const { user } = useAuth();
   const nav = useNavigate();
 
@@ -63,86 +61,47 @@ export default function AgentDashboard() {
 
   return (
     <div className="min-h-dvh bg-white">
-      {/* Header */}
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-white/90 backdrop-blur-sm">
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-5 md:px-8">
+      <div className="mx-auto w-full max-w-6xl px-4 py-6 md:px-8">
+        <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <Logo size="sm" />
-            <span className="hidden text-sm font-medium text-muted-foreground md:block">
-              {agentProfile.store_name}
-            </span>
+            <div>
+              <h1 className="text-lg font-semibold text-foreground">Agent Dashboard</h1>
+              <p className="text-xs text-muted-foreground">{agentProfile.store_name}</p>
+            </div>
           </div>
-          <Link
-            to="/dashboard"
-            className="text-xs text-muted-foreground hover:text-foreground"
-          >
-            Back to dashboard
-          </Link>
+          <Link to="/" className="text-xs text-muted-foreground hover:text-foreground">Back to homepage</Link>
         </div>
-      </header>
 
-      {/* Page title */}
-      <div className="border-b border-border/60 bg-secondary/30">
-        <div className="mx-auto max-w-5xl px-5 py-5 md:px-8">
-          <h1 className="text-xl font-bold text-foreground">Agent Dashboard</h1>
-          <p className="mt-0.5 text-sm text-muted-foreground">{agentProfile.store_name}</p>
+        <div className="grid gap-5 lg:grid-cols-[220px_minmax(0,1fr)]">
+          <aside className="rounded-2xl border border-border bg-card p-2 shadow-soft">
+            <nav className="space-y-1">
+              {TABS.map((t) => (
+                <button
+                  key={t.value}
+                  type="button"
+                  onClick={() => setTab(t.value)}
+                  className={cn(
+                    "flex w-full items-center gap-2 rounded-xl px-3 py-2.5 text-left text-sm font-medium transition-colors",
+                    tab === t.value
+                      ? "bg-primary text-primary-foreground"
+                      : "text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  )}
+                >
+                  {t.icon}
+                  {t.label}
+                </button>
+              ))}
+            </nav>
+          </aside>
+
+          <main>
+            {tab === "store" && <StoreSection agentProfile={agentProfile} userId={user?.id} />}
+            {tab === "transactions" && <TransactionsSection agentId={agentProfile.id} />}
+            {tab === "withdrawals" && <WithdrawalsSection userId={user?.id!} />}
+            {tab === "settings" && <SettingsSection agentProfile={agentProfile} />}
+          </main>
         </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="border-b border-border/60 bg-white">
-        <div className="mx-auto max-w-5xl overflow-x-auto px-5 md:px-8">
-          <nav className="flex gap-1 no-scrollbar">
-            {TABS.map((t) => (
-              <button
-                key={t.value}
-                onClick={() => setTab(t.value)}
-                className={cn(
-                  "flex shrink-0 items-center gap-2 border-b-2 px-4 py-3.5 text-sm font-medium transition-colors",
-                  tab === t.value
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {t.icon}
-                {t.label}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </div>
-
-      {/* Content */}
-      <div className="mx-auto max-w-5xl px-5 py-8 md:px-8">
-        {tab === "buy" && <BuySection />}
-        {tab === "store" && <StoreSection agentProfile={agentProfile} userId={user?.id} />}
-        {tab === "transactions" && <TransactionsSection agentId={agentProfile.id} />}
-        {tab === "withdrawals" && <WithdrawalsSection userId={user?.id!} />}
-        {tab === "settings" && <SettingsSection agentProfile={agentProfile} />}
-      </div>
-    </div>
-  );
-}
-
-// --- Buy ----------------------------------------------------------------------
-
-function BuySection() {
-  const { data: allBundles } = useQuery({
-    queryKey: ["agent-base-prices"],
-    queryFn: async () => {
-      const { data } = await supabase.from("bundles").select("id, base_price").eq("active", true);
-      return data ?? [];
-    },
-  });
-  const priceOverrides: Record<string, number> = {};
-  (allBundles ?? []).forEach((b: any) => { priceOverrides[b.id] = Number(b.base_price); });
-
-  return (
-    <div>
-      <h2 className="mb-1 text-lg font-semibold text-foreground">Buy Data</h2>
-      <p className="mb-6 text-sm text-muted-foreground">You buy at wholesale (base) price.</p>
-      <div className="rounded-2xl border border-border bg-white p-6 shadow-soft">
-        <BuyDataFlow priceOverrides={priceOverrides} />
       </div>
     </div>
   );
