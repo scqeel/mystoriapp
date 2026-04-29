@@ -143,8 +143,18 @@ async function fulfillOrder(admin: ReturnType<typeof createClient>, payment: any
   const recipient = String(payload.recipient_phone ?? "");
   const agentSlug = payload.agent_slug ? String(payload.agent_slug) : null;
   const customerUserId = payment.user_id ?? null;
+  const paymentReference = String(payment.reference ?? "").trim();
 
   if (!bundleId || !recipient) throw new Error("Invalid order payment payload");
+
+  if (paymentReference) {
+    const { data: existingByPaymentRef } = await admin
+      .from("orders")
+      .select("id")
+      .eq("payment_reference", paymentReference)
+      .maybeSingle();
+    if (existingByPaymentRef?.id) return existingByPaymentRef.id;
+  }
 
   const { data: bundle, error: bErr } = await admin
     .from("bundles")
@@ -203,12 +213,22 @@ async function fulfillOrder(admin: ReturnType<typeof createClient>, payment: any
       agent_profit: agentProfit,
       status: "processing",
       payment_status: "paid",
-      payment_reference: payment.reference,
+      payment_reference: paymentReference || null,
     })
     .select("*")
     .single();
 
-  if (oErr || !order) throw new Error(oErr?.message ?? "Order create failed");
+  if (oErr || !order) {
+    if ((oErr as any)?.code === "23505" && paymentReference) {
+      const { data: existingAfterRace } = await admin
+        .from("orders")
+        .select("id")
+        .eq("payment_reference", paymentReference)
+        .maybeSingle();
+      if (existingAfterRace?.id) return existingAfterRace.id;
+    }
+    throw new Error(oErr?.message ?? "Order create failed");
+  }
 
   const networkCode = (bundle.networks as any)?.code ?? "MTN";
   const delivery = await deliverData({
