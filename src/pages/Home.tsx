@@ -1,7 +1,8 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BriefcaseBusiness, CheckCircle2, Search, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CheckCircle2, Menu, Search, ShieldCheck, Sparkles, Zap } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
 const features = [
   {
@@ -30,7 +31,7 @@ export default function HomePage() {
       <div className="mx-auto flex min-h-dvh w-full max-w-[1440px] flex-col px-6 pb-14 pt-8 md:px-8 xl:px-10">
         <header className="flex items-center justify-between rounded-2xl border border-border/60 bg-card/60 px-4 py-3 backdrop-blur-sm md:px-6">
           <Logo size="md" />
-          <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 md:flex">
             <Button asChild variant="outline" className="h-10 rounded-xl border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/20">
               <Link to="/buy">Buy without account</Link>
             </Button>
@@ -43,6 +44,42 @@ export default function HomePage() {
               <Link to="/auth?tab=signin">Sign in</Link>
             </Button>
           </div>
+
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="right" className="w-[86%] rounded-l-2xl border-border/60">
+              <SheetHeader>
+                <SheetTitle>Menu</SheetTitle>
+                <SheetDescription>Quick actions</SheetDescription>
+              </SheetHeader>
+
+              <div className="mt-6 space-y-3">
+                <SheetClose asChild>
+                  <Button asChild className="h-11 w-full rounded-xl text-sm font-semibold">
+                    <Link to="/buy">Buy without account</Link>
+                  </Button>
+                </SheetClose>
+
+                <SheetClose asChild>
+                  <Button asChild variant="outline" className="h-11 w-full rounded-xl text-sm font-semibold">
+                    <Link to="/track" className="inline-flex items-center justify-center gap-1.5">
+                      <Search className="h-4 w-4" /> Track Order
+                    </Link>
+                  </Button>
+                </SheetClose>
+
+                <SheetClose asChild>
+                  <Button asChild variant="ghost" className="h-11 w-full rounded-xl text-sm font-semibold">
+                    <Link to="/auth?tab=signin">Sign in</Link>
+                  </Button>
+                </SheetClose>
+              </div>
+            </SheetContent>
+          </Sheet>
         </header>
 
         <section className="grid flex-1 items-center gap-8 py-10 lg:grid-cols-12 xl:gap-10">
