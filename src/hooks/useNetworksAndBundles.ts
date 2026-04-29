@@ -36,6 +36,7 @@ export function useBundles(networkId: string | null) {
         .from("bundles")
         .select("*")
         .eq("active", true)
+        .eq("sort_order", 0)
         .eq("network_id", networkId)
         .order("sort_order");
       if (error) throw error;

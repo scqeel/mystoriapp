@@ -439,6 +439,7 @@ function PricingSection() {
       size_label: form.size_label,
       size_mb: Math.round(Number(form.size_gb) * 1000),
       base_price: Number(form.base_price),
+      sort_order: 0,
       active: true,
     };
     if (editingId) {
@@ -462,11 +463,16 @@ function PricingSection() {
   };
 
   const removeBundle = async (id: string) => {
-    const { error } = await supabase.from("bundles").delete().eq("id", id);
+    const { error } = await supabase
+      .from("bundles")
+      .update({ active: false })
+      .eq("id", id);
     if (error) {
       toast({ title: "Delete failed", description: error.message, variant: "destructive" });
       return;
     }
+    await supabase.from("agent_bundle_prices").update({ active: false }).eq("bundle_id", id);
+    toast({ title: "Package removed" });
     qc.invalidateQueries({ queryKey: ["admin-pricing"] });
   };
 
@@ -503,35 +509,47 @@ function PricingSection() {
 
       <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
         <h3 className="text-lg font-semibold">Packages</h3>
-        <div className="mt-3 space-y-2">
-          {payload?.bundles.map((b: any) => (
-            <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-background/50 p-3">
-              <div>
-                <p className="font-medium">{b.size_label} ({formatGB(b.size_mb)})</p>
-                <p className="text-xs text-muted-foreground">Price: {formatGHS(Number(b.base_price))}</p>
+        <div className="mt-3 space-y-4">
+          {(payload?.networks ?? []).map((n: any) => {
+            const items = (payload?.bundles ?? []).filter((b: any) => b.network_id === n.id && b.active);
+            if (!items.length) return null;
+
+            return (
+              <div key={n.id} className="rounded-2xl border border-border/60 bg-background/40 p-3">
+                <h4 className="mb-2 text-sm font-semibold">{n.name}</h4>
+                <div className="space-y-2">
+                  {items.map((b: any) => (
+                    <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-background/60 p-3">
+                      <div>
+                        <p className="font-medium">{b.size_label} ({formatGB(b.size_mb)})</p>
+                        <p className="text-xs text-muted-foreground">Price: {formatGHS(Number(b.base_price))}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="h-8 rounded-lg"
+                          onClick={() => {
+                            setEditingId(b.id);
+                            setForm({
+                              network_id: b.network_id,
+                              size_label: b.size_label,
+                              size_gb: String(b.size_mb / 1000),
+                              base_price: String(b.base_price),
+                            });
+                          }}
+                        >
+                          Edit
+                        </Button>
+                        <Button variant="ghost" className="h-8 rounded-lg text-destructive hover:text-destructive" onClick={() => removeBundle(b.id)}>
+                          Delete
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="h-8 rounded-lg"
-                  onClick={() => {
-                    setEditingId(b.id);
-                    setForm({
-                      network_id: b.network_id,
-                      size_label: b.size_label,
-                      size_gb: String(b.size_mb / 1000),
-                      base_price: String(b.base_price),
-                    });
-                  }}
-                >
-                  Edit
-                </Button>
-                <Button variant="ghost" className="h-8 rounded-lg text-destructive hover:text-destructive" onClick={() => removeBundle(b.id)}>
-                  Delete
-                </Button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
