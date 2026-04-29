@@ -1,182 +1,147 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, BriefcaseBusiness, CheckCircle2, Menu, Search, ShieldCheck, Sparkles, Zap } from "lucide-react";
+import { ArrowRight, BriefcaseBusiness, CheckCircle, Menu, Package, Search, ShieldCheck, Zap } from "lucide-react";
 import { Logo } from "@/components/Logo";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-
-const features = [
-  {
-    title: "Wholesale data bundles",
-    description: "Access admin-managed bundle pricing built for profitable data reselling.",
-    icon: Zap,
-  },
-  {
-    title: "Reseller storefront",
-    description: "Launch your own public store link so customers can buy data directly.",
-    icon: CheckCircle2,
-  },
-  {
-    title: "Agent profit tracking",
-    description: "Track sales, margins, withdrawals, and order performance in one dashboard.",
-    icon: ShieldCheck,
-  },
-];
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 export default function HomePage() {
   return (
-    <main className="relative min-h-dvh overflow-hidden">
-      <div className="pointer-events-none absolute -top-36 left-1/2 h-80 w-80 -translate-x-1/2 rounded-full bg-primary/25 blur-3xl" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-96 w-96 rounded-full bg-cyan-400/10 blur-3xl" />
-
-      <div className="mx-auto flex min-h-dvh w-full max-w-[1440px] flex-col px-6 pb-14 pt-8 md:px-8 xl:px-10">
-        <header className="flex items-center justify-between rounded-2xl border border-border/60 bg-card/60 px-4 py-3 backdrop-blur-sm md:px-6">
+    <main className="min-h-dvh bg-white">
+      {/* Nav */}
+      <header className="sticky top-0 z-30 border-b border-border/60 bg-white/90 backdrop-blur-sm">
+        <div className="mx-auto flex h-16 max-w-5xl items-center justify-between px-5 md:px-8">
           <Logo size="md" />
           <div className="hidden items-center gap-2 md:flex">
-            <Button asChild variant="outline" className="h-10 rounded-xl border-primary/30 bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/20">
-              <Link to="/buy">Buy without account</Link>
-            </Button>
-            <Button asChild variant="ghost" className="rounded-xl text-foreground">
-              <Link to="/track" className="inline-flex items-center gap-1">
-                <Search className="h-3.5 w-3.5" /> Track
-              </Link>
-            </Button>
-            <Button asChild variant="ghost" className="rounded-xl text-foreground">
-              <Link to="/auth?tab=signin">Sign in</Link>
+            <Link to="/track" className="inline-flex h-9 items-center gap-1.5 rounded-xl px-4 text-sm text-muted-foreground hover:text-foreground">
+              <Search className="h-3.5 w-3.5" /> Track order
+            </Link>
+            <Link to="/auth?tab=signin" className="inline-flex h-9 items-center rounded-xl px-4 text-sm text-muted-foreground hover:text-foreground">
+              Agent sign in
+            </Link>
+            <Button asChild className="h-9 rounded-xl px-5 text-sm font-semibold gradient-primary shadow-float">
+              <Link to="/buy">Buy Data Now</Link>
             </Button>
           </div>
-
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Open menu">
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Menu">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
-            <SheetContent side="right" className="w-[86%] rounded-l-2xl border-border/60">
+            <SheetContent side="right" className="w-72 bg-white">
               <SheetHeader>
                 <SheetTitle>Menu</SheetTitle>
-                <SheetDescription>Quick actions</SheetDescription>
+                <SheetDescription className="sr-only">Navigation</SheetDescription>
               </SheetHeader>
-
               <div className="mt-6 space-y-3">
                 <SheetClose asChild>
-                  <Button asChild className="h-11 w-full rounded-xl text-sm font-semibold">
-                    <Link to="/buy">Buy without account</Link>
+                  <Button asChild className="h-11 w-full rounded-xl gradient-primary font-semibold">
+                    <Link to="/buy">Buy Data Now</Link>
                   </Button>
                 </SheetClose>
-
                 <SheetClose asChild>
-                  <Button asChild variant="outline" className="h-11 w-full rounded-xl text-sm font-semibold">
-                    <Link to="/track" className="inline-flex items-center justify-center gap-1.5">
-                      <Search className="h-4 w-4" /> Track Order
-                    </Link>
+                  <Button asChild variant="outline" className="h-11 w-full rounded-xl">
+                    <Link to="/track"><Search className="mr-2 h-4 w-4" />Track Order</Link>
                   </Button>
                 </SheetClose>
-
                 <SheetClose asChild>
-                  <Button asChild variant="ghost" className="h-11 w-full rounded-xl text-sm font-semibold">
-                    <Link to="/auth?tab=signin">Sign in</Link>
+                  <Button asChild variant="ghost" className="h-11 w-full rounded-xl text-muted-foreground">
+                    <Link to="/auth?tab=signin">Agent Sign In</Link>
                   </Button>
                 </SheetClose>
               </div>
             </SheetContent>
           </Sheet>
-        </header>
+        </div>
+      </header>
 
-        <section className="grid flex-1 items-center gap-8 py-10 lg:grid-cols-12 xl:gap-10">
-          <div className="animate-fade-in space-y-6 text-left lg:col-span-5 xl:col-span-6">
-            <p className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Sparkles className="h-3.5 w-3.5" />
-              Data Reselling Platform
+      {/* Hero */}
+      <section className="mx-auto max-w-5xl px-5 pb-16 pt-20 text-center md:px-8 md:pt-24">
+        <span className="mb-5 inline-block rounded-full bg-primary/10 px-4 py-1.5 text-xs font-semibold text-primary">
+          Ghana's fast data bundle service
+        </span>
+        <h1 className="mx-auto max-w-2xl text-4xl font-bold leading-tight text-foreground md:text-5xl lg:text-6xl">
+          Buy mobile data instantly.{" "}
+          <span className="gradient-text">No account needed.</span>
+        </h1>
+        <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-muted-foreground">
+          Choose your network, pick a bundle, and pay with MoMo or card. Delivered in seconds and no sign-up required.
+        </p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Button asChild size="lg" className="h-12 rounded-xl px-8 text-base font-semibold gradient-primary shadow-float">
+            <Link to="/buy">Buy Data Now <ArrowRight className="ml-1 h-5 w-5" /></Link>
+          </Button>
+          <Button asChild variant="outline" size="lg" className="h-12 rounded-xl px-8 text-base font-semibold">
+            <Link to="/track"><Search className="mr-2 h-4 w-4" /> Track My Order</Link>
+          </Button>
+        </div>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+          {["No account needed", "Instant delivery", "Secure Paystack checkout", "All major networks"].map((t) => (
+            <span key={t} className="inline-flex items-center gap-1.5">
+              <CheckCircle className="h-4 w-4 text-primary" />{t}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="bg-secondary/50 py-16">
+        <div className="mx-auto max-w-5xl px-5 md:px-8">
+          <h2 className="mb-10 text-center text-2xl font-bold text-foreground">How it works</h2>
+          <div className="grid gap-6 md:grid-cols-3">
+            {[
+              { icon: Zap, step: "1", title: "Choose your bundle", desc: "Select a network and the data bundle that fits your needs." },
+              { icon: ShieldCheck, step: "2", title: "Pay securely", desc: "Complete payment via MoMo or card through Paystack." },
+              { icon: Package, step: "3", title: "Receive instantly", desc: "Data is delivered to your number within seconds." },
+            ].map(({ icon: Icon, step, title, desc }) => (
+              <div key={step} className="rounded-2xl border border-border bg-white p-6 shadow-soft">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10">
+                  <Icon className="h-5 w-5 text-primary" />
+                </div>
+                <p className="mb-1 text-xs font-semibold uppercase tracking-widest text-primary">Step {step}</p>
+                <h3 className="text-base font-semibold text-foreground">{title}</h3>
+                <p className="mt-1 text-sm text-muted-foreground">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Agent CTA */}
+      <section className="mx-auto max-w-5xl px-5 py-16 md:px-8">
+        <div className="flex flex-col items-start justify-between gap-6 rounded-2xl border border-primary/20 bg-primary/5 p-7 md:flex-row md:items-center md:p-10">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-primary">For resellers</p>
+            <h2 className="mt-2 text-2xl font-bold text-foreground">Earn on every data sale.</h2>
+            <p className="mt-2 max-w-md text-sm text-muted-foreground">
+              Create an agent account, set your own prices, and share your store link. Profit on every customer order.
             </p>
-            <h1 className="text-4xl font-bold leading-tight text-foreground md:text-5xl xl:text-6xl">
-              Buy, resell, and manage mobile data from one SaaS dashboard.
-            </h1>
-            <p className="max-w-xl text-base leading-relaxed text-muted-foreground">
-              OneGig is a data reselling website for agents and store owners. Buy bundles at base price, set your own prices, and earn profit on every customer purchase.
-            </p>
-            <div className="flex flex-wrap items-center gap-3">
-              <Button asChild className="h-12 rounded-xl px-6 text-sm font-semibold shadow-float">
-                <Link to="/buy">
-                  Buy Without Account
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild className="h-12 rounded-xl px-6 text-sm font-semibold shadow-float">
-                <Link to="/auth?tab=signup">
-                  Start Reselling
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-              <Button asChild variant="outline" className="h-12 rounded-xl border-primary/40 bg-background/30 px-6 text-sm font-semibold text-foreground hover:bg-primary/10 hover:text-foreground">
-                <Link to="/auth?tab=signin">Sign in</Link>
-              </Button>
-            </div>
           </div>
+          <Button asChild className="shrink-0 h-12 rounded-xl px-7 text-sm font-semibold gradient-primary shadow-float">
+            <Link to="/auth?intent=agent">
+              <BriefcaseBusiness className="mr-2 h-4 w-4" />Become an Agent
+            </Link>
+          </Button>
+        </div>
+      </section>
 
-          <div className="animate-fade-up lg:col-span-7 xl:col-span-6">
-            <div className="rounded-3xl border border-border/60 bg-card/70 p-5 shadow-float backdrop-blur-sm md:p-6">
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm font-medium text-foreground">Live Reseller Activity Snapshot</p>
-                <span className="rounded-full bg-primary/10 px-3 py-1 text-xs text-primary">Realtime</span>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-4">
-                {[
-                  { label: "Reseller Orders", value: "2,481" },
-                  { label: "Delivery Rate", value: "99.1%" },
-                  { label: "Active Agents", value: "412" },
-                  { label: "Agent Payouts", value: "GHS 74k" },
-                ].map((m) => (
-                  <div key={m.label} className="rounded-2xl border border-border/60 bg-background/60 p-3">
-                    <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{m.label}</p>
-                    <p className="mt-1 text-lg font-semibold">{m.value}</p>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-4 rounded-2xl border border-border/60 bg-background/60 p-4">
-                <div className="h-36 rounded-xl bg-gradient-to-r from-primary/10 via-cyan-400/5 to-primary/10" />
-              </div>
-
-              <div className="mt-4 grid gap-3 md:grid-cols-3">
-                {features.map((feature) => {
-                  const Icon = feature.icon;
-                  return (
-                    <article key={feature.title} className="rounded-2xl border border-border/60 bg-background/60 p-4">
-                      <div className="flex items-start gap-3">
-                        <div className="mt-0.5 rounded-xl bg-primary/15 p-2 text-primary">
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div>
-                          <h3 className="text-sm font-semibold text-foreground">{feature.title}</h3>
-                          <p className="mt-1 text-xs text-muted-foreground">{feature.description}</p>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section className="animate-fade-up rounded-3xl border border-primary/35 bg-primary/10 p-6 md:p-8">
-          <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-primary">Become an agent</p>
-              <h2 className="mt-2 text-2xl font-semibold text-foreground">Start your data reselling store and earn on every sale.</h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                Create your account, activate as an agent, set your own bundle prices, and run your own branded data storefront.
-              </p>
-            </div>
-            <Button asChild className="h-12 rounded-xl px-6 text-sm font-semibold">
-              <Link to="/auth?intent=agent">
-                <BriefcaseBusiness className="h-4 w-4" />
-                Become an agent
-              </Link>
-            </Button>
-          </div>
-        </section>
-      </div>
+      {/* Footer */}
+      <footer className="border-t border-border/60 bg-white py-8 text-center text-xs text-muted-foreground">
+        <p>Copyright {new Date().getFullYear()} OneGig. Fast, affordable mobile data for Ghana.</p>
+        <div className="mt-3 flex items-center justify-center gap-5">
+          <Link to="/buy" className="hover:text-foreground">Buy Data</Link>
+          <Link to="/track" className="hover:text-foreground">Track Order</Link>
+          <Link to="/auth?tab=signin" className="hover:text-foreground">Agent Login</Link>
+        </div>
+      </footer>
     </main>
   );
 }

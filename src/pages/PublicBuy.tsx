@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowLeft, Search, UserPlus } from "lucide-react";
+import { ArrowLeft, Search } from "lucide-react";
 import { BuyDataFlow } from "@/components/buy/BuyDataFlow";
 
 export default function PublicBuyPage() {
@@ -11,9 +11,6 @@ export default function PublicBuyPage() {
         </Link>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="rounded-full bg-primary/10 px-3 py-1 text-primary">No account needed</span>
-          <Link to="/auth?tab=signup" className="inline-flex items-center gap-1 rounded-full border border-border/60 px-3 py-1 hover:text-foreground">
-            <UserPlus className="h-3.5 w-3.5" /> Create account
-          </Link>
         </div>
       </div>
 

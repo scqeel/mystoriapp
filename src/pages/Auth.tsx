@@ -15,6 +15,7 @@ export default function AuthPage() {
   const nav = useNavigate();
   const loc = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+  const authClient = supabase.auth as any;
   const { toast } = useToast();
   const { session, loading } = useAuth();
   const { data: settings } = useSettings();
@@ -23,7 +24,7 @@ export default function AuthPage() {
   const tabParam = searchParams.get("tab");
   const intent = searchParams.get("intent");
 
-  // Derive view from URL — signup if tab=signup or intent=agent, else signin
+  // Signup is reserved for agents. Regular customers buy from the homepage.
   const isSignUp = tabParam === "signup" || intent === "agent";
 
   const switchTo = (t: "signin" | "signup") => setSearchParams({ tab: t }, { replace: true });
@@ -50,7 +51,7 @@ export default function AuthPage() {
       return;
     }
     setBusy(true);
-    const { error } = await supabase.auth.signInWithPassword({
+    const { error } = await authClient.signInWithPassword({
       email: siEmail.trim().toLowerCase(),
       password: siPassword,
     });
@@ -68,7 +69,7 @@ export default function AuthPage() {
 
     setBusy(true);
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await authClient.signUp({
         email: normalizedEmail,
         password: suPassword,
         options: {
@@ -92,7 +93,7 @@ export default function AuthPage() {
       }
 
       // No session yet — auto sign in.
-      const { error: signInErr } = await supabase.auth.signInWithPassword({
+      const { error: signInErr } = await authClient.signInWithPassword({
         email: normalizedEmail,
         password: suPassword,
       });
@@ -125,14 +126,14 @@ export default function AuthPage() {
 
           <div className="mt-8 space-y-4">
             <div className="rounded-2xl border border-border/60 bg-card/70 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Realtime Activity</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Customer Orders</p>
               <p className="mt-1 text-2xl font-semibold">1,204 orders</p>
-              <p className="mt-1 text-xs text-muted-foreground">Monitored across customer, admin, and agent views.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Regular users buy directly from the homepage without creating accounts.</p>
             </div>
             <div className="rounded-2xl border border-border/60 bg-card/70 p-4">
-              <p className="text-xs uppercase tracking-wide text-muted-foreground">Availability</p>
-              <p className="mt-1 text-2xl font-semibold">99.9%</p>
-              <p className="mt-1 text-xs text-muted-foreground">Reliable flows optimized for fast checkout and tracking.</p>
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">Agent Access</p>
+              <p className="mt-1 text-2xl font-semibold">Reseller only</p>
+              <p className="mt-1 text-xs text-muted-foreground">Create an account only if you want to run an agent store and manage pricing.</p>
             </div>
           </div>
         </section>
@@ -146,8 +147,8 @@ export default function AuthPage() {
 
             {!isSignUp && (
               <div className="animate-fade-up">
-                <h2 className="text-2xl font-semibold text-foreground">Welcome back</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Sign in to continue to your dashboard</p>
+                <h2 className="text-2xl font-semibold text-foreground">Agent sign in</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Access your reseller dashboard, store pricing, and withdrawals.</p>
 
                 <div className="mt-6 space-y-4">
                   <div className="space-y-1.5">
@@ -164,16 +165,17 @@ export default function AuthPage() {
                 </div>
 
                 <p className="mt-5 text-sm text-muted-foreground">
-                  Don't have an account?{" "}
-                  <button onClick={() => switchTo("signup")} className="font-semibold text-primary hover:text-primary/80">Create one</button>
+                  Need an agent account?{" "}
+                  <button onClick={() => setSearchParams({ tab: "signup", intent: "agent" }, { replace: true })} className="font-semibold text-primary hover:text-primary/80">Create agent account</button>
                 </p>
+                <p className="mt-2 text-xs text-muted-foreground">If you only want to buy data, use the public checkout from the homepage.</p>
               </div>
             )}
 
             {isSignUp && (
               <div className="animate-fade-up">
-                <h2 className="text-2xl font-semibold text-foreground">Create your account</h2>
-                <p className="mt-1 text-sm text-muted-foreground">Fill your details to unlock the full workspace</p>
+                <h2 className="text-2xl font-semibold text-foreground">Create agent account</h2>
+                <p className="mt-1 text-sm text-muted-foreground">Use this only if you want to resell data, set prices, and manage an agent store.</p>
 
                 <div className="mt-6 space-y-4">
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -203,6 +205,7 @@ export default function AuthPage() {
                   Already have an account?{" "}
                   <button onClick={() => switchTo("signin")} className="font-semibold text-primary hover:text-primary/80">Sign in</button>
                 </p>
+                <p className="mt-2 text-xs text-muted-foreground">Regular users do not need accounts to buy bundles.</p>
               </div>
             )}
 
