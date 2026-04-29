@@ -67,40 +67,47 @@ export default function AuthPage() {
     const normalizedEmail = suEmail.trim().toLowerCase();
 
     setBusy(true);
-    const { data, error } = await supabase.auth.signUp({
-      email: normalizedEmail,
-      password: suPassword,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: {
-          full_name: suFullName.trim(),
-          username: suUsername.toLowerCase().trim(),
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password: suPassword,
+        options: {
+          data: {
+            full_name: suFullName.trim(),
+            username: suUsername.toLowerCase().trim(),
+          },
         },
-      },
-    });
+      });
 
-    if (error) {
-      setBusy(false);
-      toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
-    } else {
+      if (error) {
+        toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
+        return;
+      }
+
+      // If Supabase returned a session directly, we're signed in — navigate now.
       if (data.session) {
-        setBusy(false);
         toast({ title: "Account created", description: "You are now signed in." });
         nav(from || "/dashboard", { replace: true });
         return;
       }
 
+      // No session yet — auto sign in.
       const { error: signInErr } = await supabase.auth.signInWithPassword({
         email: normalizedEmail,
         password: suPassword,
       });
-      setBusy(false);
+
       if (signInErr) {
-        toast({ title: "Account created", description: "Please sign in with your new account." });
+        toast({ title: "Account created", description: "Please sign in to continue.", variant: "default" });
       } else {
         toast({ title: "Account created", description: "You are now signed in." });
         nav(from || "/dashboard", { replace: true });
       }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Unexpected error. Please try again.";
+      toast({ title: "Sign up failed", description: msg, variant: "destructive" });
+    } finally {
+      setBusy(false);
     }
   };
 
