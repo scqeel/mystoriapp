@@ -19,19 +19,76 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-/**
- * Stub data delivery adapter.
- * Plug your real Ghana data API (Hubtel / Sika / etc.) here.
- * Return { ok: true } to mark order as delivered.
- */
-async function deliverData(_args: {
+const PROVIDER_BASE_URL =
+  Deno.env.get("DEVELOPER_API_BASE_URL") ||
+  "https://lsocdjpflecduumopijn.supabase.co/functions/v1/developer-api";
+
+const PROVIDER_API_KEY = Deno.env.get("DEVELOPER_API_KEY") || "";
+
+function normalizePhone(phone: string) {
+  return phone.replace(/\D/g, "");
+}
+
+function toProviderNetwork(code: string) {
+  const normalized = String(code || "").trim().toUpperCase();
+  if (["MTN", "M"].includes(normalized)) return "MTN";
+  if (["TELECEL", "VODAFONE", "VODA", "VOD", "T", "TCL"].includes(normalized)) return "TELECEL";
+  if (["AT", "AIRTELTIGO", "AIRTEL", "TIGO", "A"].includes(normalized)) return "AT";
+  return normalized || "MTN";
+}
+
+function toPlanId(sizeLabel: string | null | undefined, sizeMb: number) {
+  if (sizeLabel && /gb/i.test(sizeLabel)) return String(sizeLabel).replace(/\s+/g, "").toUpperCase();
+  const gb = Number(sizeMb) / 1024;
+  const safeGb = Number.isInteger(gb) ? String(gb) : gb.toFixed(1).replace(/\.0$/, "");
+  return `${safeGb}GB`;
+}
+
+async function deliverData(args: {
   recipient: string;
   network_code: string;
+  size_label?: string | null;
   size_mb: number;
 }): Promise<{ ok: boolean; provider_ref?: string; message?: string }> {
-  // Simulate near-instant success
-  await new Promise((r) => setTimeout(r, 600));
-  return { ok: true, provider_ref: `STUB-${Date.now()}` };
+  const endpoint = `${PROVIDER_BASE_URL.replace(/\/$/, "")}/airtime`;
+  const requestId = crypto.randomUUID();
+  const payload = {
+    network: toProviderNetwork(args.network_code),
+    plan_id: toPlanId(args.size_label, args.size_mb),
+    phone: normalizePhone(args.recipient),
+    request_id: requestId,
+  };
+
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: {
+      "X-API-Key": PROVIDER_API_KEY,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const rawText = await response.text();
+  let parsed: any = null;
+  try {
+    parsed = rawText ? JSON.parse(rawText) : null;
+  } catch {
+    parsed = null;
+  }
+
+  if (response.status !== 200) {
+    return {
+      ok: false,
+      provider_ref: requestId,
+      message: parsed?.message || rawText || `Provider failed with HTTP ${response.status}`,
+    };
+  }
+
+  return {
+    ok: true,
+    provider_ref: parsed?.request_id || parsed?.reference || requestId,
+    message: parsed?.message || null,
+  };
 }
 
 Deno.serve(async (req) => {
@@ -68,14 +125,14 @@ Deno.serve(async (req) => {
     // Bundle lookup
     const { data: bundle, error: bErr } = await admin
       .from("bundles")
-      .select("id, base_price, user_price, size_mb, network_id, networks:networks(code)")
+      .select("id, base_price, size_label, size_mb, network_id, networks:networks(code)")
       .eq("id", body.bundle_id)
       .maybeSingle();
     if (bErr || !bundle) return json({ error: "Bundle not found" }, 404);
 
     // Agent + agent price
     let agentId: string | null = null;
-    let sellPrice = Number(bundle.user_price ?? bundle.base_price);
+    let sellPrice = Number(bundle.base_price);
     let agentProfit = 0;
     let source: "direct" | "agent_store" = "direct";
 
@@ -130,6 +187,7 @@ Deno.serve(async (req) => {
     const delivery = await deliverData({
       recipient: body.recipient_phone,
       network_code: networkCode,
+      size_label: bundle.size_label,
       size_mb: bundle.size_mb,
     });
 
