@@ -78,7 +78,7 @@ export default function AuthPage() {
     }
 
     setBusy(true);
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
       password: suPassword,
       options: {
@@ -89,11 +89,29 @@ export default function AuthPage() {
         },
       },
     });
-    setBusy(false);
+
     if (error) {
+      setBusy(false);
       toast({ title: "Sign up failed", description: error.message, variant: "destructive" });
     } else {
-      toast({ title: "Account created!", description: "Check your email to confirm your account." });
+      if (data.session) {
+        setBusy(false);
+        toast({ title: "Account created", description: "You are now signed in." });
+        nav(from || "/dashboard", { replace: true });
+        return;
+      }
+
+      const { error: signInErr } = await supabase.auth.signInWithPassword({
+        email: normalizedEmail,
+        password: suPassword,
+      });
+      setBusy(false);
+      if (signInErr) {
+        toast({ title: "Account created", description: "Please sign in with your new account." });
+      } else {
+        toast({ title: "Account created", description: "You are now signed in." });
+        nav(from || "/dashboard", { replace: true });
+      }
     }
   };
 
