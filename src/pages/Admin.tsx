@@ -412,7 +412,7 @@ function WithdrawalsSection() {
 function PricingSection() {
   const qc = useQueryClient();
   const { toast } = useToast();
-  const [form, setForm] = useState({ network_id: "", size_label: "", size_gb: "", base_price: "" });
+  const [form, setForm] = useState({ network_id: "", size_label: "", size_gb: "", user_price: "", base_price: "" });
   const [editingId, setEditingId] = useState<string | null>(null);
   const [activationFee, setActivationFee] = useState("50");
 
@@ -421,7 +421,7 @@ function PricingSection() {
     queryFn: async () => {
       const [{ data: networks }, { data: bundles }, { data: feeRow }] = await Promise.all([
         supabase.from("networks").select("id, name, code").order("sort_order"),
-        supabase.from("bundles").select("id, network_id, size_label, size_mb, base_price, active").order("sort_order"),
+        supabase.from("bundles").select("*").order("sort_order"),
         supabase.from("app_settings").select("value").eq("key", "agent_activation_fee").maybeSingle(),
       ]);
       return { networks: networks ?? [], bundles: bundles ?? [], activationFee: Number(feeRow?.value ?? 50) };
@@ -433,11 +433,12 @@ function PricingSection() {
   }, [payload?.activationFee]);
 
   const saveBundle = async () => {
-    if (!form.network_id || !form.size_label || !form.size_gb || !form.base_price) return;
+    if (!form.network_id || !form.size_label || !form.size_gb || !form.base_price || !form.user_price) return;
     const row = {
       network_id: form.network_id,
       size_label: form.size_label,
       size_mb: Math.round(Number(form.size_gb) * 1000),
+      user_price: Number(form.user_price),
       base_price: Number(form.base_price),
       sort_order: 0,
       active: true,
@@ -457,7 +458,7 @@ function PricingSection() {
       }
       toast({ title: "Bundle created" });
     }
-    setForm({ network_id: "", size_label: "", size_gb: "", base_price: "" });
+    setForm({ network_id: "", size_label: "", size_gb: "", user_price: "", base_price: "" });
     setEditingId(null);
     qc.invalidateQueries({ queryKey: ["admin-pricing"] });
   };
@@ -491,7 +492,7 @@ function PricingSection() {
     <div className="space-y-4">
       <div className="rounded-3xl border border-border/60 bg-card p-5 shadow-soft">
         <h2 className="text-xl font-semibold">Add / Edit Packages</h2>
-        <div className="mt-4 grid gap-3 md:grid-cols-4">
+        <div className="mt-4 grid gap-3 md:grid-cols-5">
           <select
             value={form.network_id}
             onChange={(e) => setForm((p) => ({ ...p, network_id: e.target.value }))}
@@ -502,7 +503,8 @@ function PricingSection() {
           </select>
           <Input placeholder="Package label" value={form.size_label} onChange={(e) => setForm((p) => ({ ...p, size_label: e.target.value }))} className="h-11" />
           <Input placeholder="Size (GB)" type="number" step="0.5" min="0" value={form.size_gb} onChange={(e) => setForm((p) => ({ ...p, size_gb: e.target.value }))} className="h-11" />
-          <Input placeholder="Price (GHS)" value={form.base_price} onChange={(e) => setForm((p) => ({ ...p, base_price: e.target.value }))} className="h-11" />
+          <Input placeholder="User price (GHS)" value={form.user_price} onChange={(e) => setForm((p) => ({ ...p, user_price: e.target.value }))} className="h-11" />
+          <Input placeholder="Agent price (GHS)" value={form.base_price} onChange={(e) => setForm((p) => ({ ...p, base_price: e.target.value }))} className="h-11" />
         </div>
         <Button className="mt-3 h-10 rounded-lg" onClick={saveBundle}>{editingId ? "Update package" : "Add package"}</Button>
       </div>
@@ -522,7 +524,7 @@ function PricingSection() {
                     <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/60 bg-background/60 p-3">
                       <div>
                         <p className="font-medium">{b.size_label} ({formatGB(b.size_mb)})</p>
-                        <p className="text-xs text-muted-foreground">Price: {formatGHS(Number(b.base_price))}</p>
+                        <p className="text-xs text-muted-foreground">User: {formatGHS(Number(b.user_price ?? b.base_price))} · Agent: {formatGHS(Number(b.base_price))}</p>
                       </div>
                       <div className="flex gap-2">
                         <Button
@@ -534,6 +536,7 @@ function PricingSection() {
                               network_id: b.network_id,
                               size_label: b.size_label,
                               size_gb: String(b.size_mb / 1000),
+                              user_price: String(b.user_price ?? b.base_price),
                               base_price: String(b.base_price),
                             });
                           }}

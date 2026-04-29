@@ -154,6 +154,7 @@ export type Database = {
           size_mb: number
           sort_order: number
           updated_at: string
+          user_price: number | null
         }
         Insert: {
           active?: boolean
@@ -165,6 +166,7 @@ export type Database = {
           size_mb: number
           sort_order?: number
           updated_at?: string
+          user_price?: number | null
         }
         Update: {
           active?: boolean
@@ -176,6 +178,7 @@ export type Database = {
           size_mb?: number
           sort_order?: number
           updated_at?: string
+          user_price?: number | null
         }
         Relationships: [
           {

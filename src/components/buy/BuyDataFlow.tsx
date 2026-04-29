@@ -44,7 +44,7 @@ export function BuyDataFlow({ agentSlug, priceOverrides, defaultPhone, brandColo
   }, [networks, network]);
 
   const priceFor = (b: BundleRow) =>
-    priceOverrides && priceOverrides[b.id] != null ? priceOverrides[b.id] : Number(b.base_price);
+    priceOverrides && priceOverrides[b.id] != null ? priceOverrides[b.id] : Number(b.user_price ?? b.base_price);
 
   const finalPrice = bundle ? priceFor(bundle) : 0;
 

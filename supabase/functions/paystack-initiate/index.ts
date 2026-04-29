@@ -69,14 +69,26 @@ Deno.serve(async (req) => {
 
       const { data: bundle, error: bundleErr } = await admin
         .from("bundles")
-        .select("id, base_price, size_label, network_id")
+        .select("id, base_price, user_price, size_label, network_id")
         .eq("id", body.bundle_id)
         .maybeSingle();
 
       if (bundleErr || !bundle) return json({ error: "Bundle not found" }, 404);
 
-      amount = Number(bundle.base_price);
+      amount = Number(bundle.user_price ?? bundle.base_price);
       let source: "direct" | "agent_store" = "direct";
+
+      if (userId) {
+        const { data: roleRow } = await admin
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", userId)
+          .eq("role", "agent")
+          .maybeSingle();
+        if (roleRow?.role === "agent") {
+          amount = Number(bundle.base_price);
+        }
+      }
 
       if (body.agent_slug) {
         const { data: agent } = await admin
